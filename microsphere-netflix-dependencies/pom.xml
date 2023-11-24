@@ -4,9 +4,9 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <groupId>io.github.microsphere-projects</groupId>
-        <artifactId>microsphere-security-parent</artifactId>
+        <artifactId>microsphere-netflix-parent</artifactId>
         <version>${revision}</version>
-        <relativePath>../microsphere-security-parent/pom.xml</relativePath>
+        <relativePath>../microsphere-netflix-parent/pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
