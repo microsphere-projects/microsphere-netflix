@@ -20,7 +20,11 @@
 
     <dependencyManagement>
         <dependencies>
-
+            <dependency>
+                <groupId>io.github.microsphere-projects</groupId>
+                <artifactId>microsphere-netflix-eureka-client</artifactId>
+                <version>${revision}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 </project>
