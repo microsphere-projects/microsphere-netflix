@@ -1,0 +1,3 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+io.microsphere.netflix.eureka.client.spring.cloud.autoconfigure.EnhancedEurekaClientAutoConfiguration,\
+io.microsphere.netflix.eureka.client.spring.cloud.autoconfigure.MultipleEurekaClientAutoConfiguration
