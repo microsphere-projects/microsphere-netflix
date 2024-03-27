@@ -59,8 +59,7 @@
     <modules>
         <module>microsphere-netflix-parent</module>
         <module>microsphere-netflix-dependencies</module>
-        <module>microsphere-netflix-eureka-client</module>
-        <module>microsphere-netflix-eureka-client-spring-cloud-starter</module>
+        <module>microsphere-netflix-eureka-client-spring-cloud</module>
     </modules>
 
     <distributionManagement>

@@ -11,11 +11,11 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>io.github.microsphere-projects</groupId>
-    <artifactId>microsphere-netflix-eureka-client-spring-cloud-starter</artifactId>
+    <artifactId>microsphere-netflix-eureka-client-spring-cloud</artifactId>
     <version>${revision}</version>
 
-    <name>Microsphere :: Netflix :: Eureka Client :: Spring Cloud Starter</name>
-    <description>Microsphere Netflix Eureka Client Spring Cloud Starter</description>
+    <name>Microsphere :: Netflix :: Eureka Client :: Spring Cloud</name>
+    <description>Microsphere Netflix Eureka Client Spring Cloud</description>
 
     <dependencies>
 
