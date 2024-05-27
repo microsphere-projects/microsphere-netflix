@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--For clustering, please take a look at documentation at:
+    /docs/cluster-howto.html  (simple how to)
+    /docs/config/cluster.html (reference documentation) -->
+<Cluster className="org.apache.catalina.ha.tcp.SimpleTcpCluster" channelSendOptions="74">
+
+    <Channel className="org.apache.catalina.tribes.group.GroupChannel">
+
+        <Membership className="org.apache.catalina.tribes.membership.McastService"
+                    address="${microsphere.tomcat.cluster.membership.multicast.address:228.0.0.4}"
+                    port="${microsphere.tomcat.cluster.membership.multicast.port:45564}"
+                    frequency="${microsphere.tomcat.cluster.membership.multicast.frequency:500}"
+                    dropTime="${microsphere.tomcat.cluster.membership.multicast.drop-time:3000}"/>
+
+        <Receiver className="org.apache.catalina.tribes.transport.nio.NioReceiver"
+                  address="${microsphere.tomcat.cluster.transport.receiver.address:auto}"
+                  port="${microsphere.tomcat.cluster.transport.receiver.port:4000}"
+                  autoBind="${microsphere.tomcat.cluster.transport.receiver.auto-bind:100}"
+                  selectorTimeout="${microsphere.tomcat.cluster.transport.receiver.selector-timeout:5000}"
+                  maxThreads="${microsphere.tomcat.cluster.transport.receiver.max-threads:6}"/>
+
+        <Sender className="org.apache.catalina.tribes.transport.ReplicationTransmitter" />
+        <Interceptor className="org.apache.catalina.tribes.group.interceptors.TcpFailureDetector"/>
+        <Interceptor className="org.apache.catalina.tribes.group.interceptors.MessageDispatchInterceptor"/>
+    </Channel>
+
+</Cluster>

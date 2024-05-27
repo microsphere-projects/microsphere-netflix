@@ -60,6 +60,7 @@
         <module>microsphere-netflix-dependencies</module>
         <module>microsphere-netflix-eureka-client-core</module>
         <module>microsphere-netflix-eureka-client-spring-cloud</module>
+        <module>microsphere-netflix-eureka-server-spring-cloud</module>
     </modules>
 
     <distributionManagement>
