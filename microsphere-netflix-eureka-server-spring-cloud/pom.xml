@@ -97,12 +97,6 @@
             <artifactId>tomcat-tribes</artifactId>
             <version>${tomcat.version}</version>
             <optional>true</optional>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.apache.tomcat</groupId>
-                    <artifactId>tomcat-juli</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
         <dependency>
@@ -110,36 +104,6 @@
             <artifactId>tomcat-catalina-ha</artifactId>
             <version>${tomcat.version}</version>
             <optional>true</optional>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.apache.tomcat</groupId>
-                    <artifactId>tomcat-tribes</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.apache.tomcat</groupId>
-                    <artifactId>tomcat-coyote</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.apache.tomcat</groupId>
-                    <artifactId>tomcat-catalina</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.apache.tomcat</groupId>
-                    <artifactId>tomcat-servlet-api</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.apache.tomcat</groupId>
-                    <artifactId>tomcat-juli</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.apache.tomcat</groupId>
-                    <artifactId>tomcat-util</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.apache.tomcat</groupId>
-                    <artifactId>tomcat-util-scan</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
         <!-- Testing -->
