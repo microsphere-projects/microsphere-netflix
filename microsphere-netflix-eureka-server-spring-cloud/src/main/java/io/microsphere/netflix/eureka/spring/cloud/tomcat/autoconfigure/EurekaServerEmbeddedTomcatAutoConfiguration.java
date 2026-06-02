@@ -18,6 +18,12 @@ package io.microsphere.netflix.eureka.spring.cloud.tomcat.autoconfigure;
 
 import io.microsphere.netflix.eureka.spring.cloud.tomcat.servlet.listener.EurekaServerListener;
 import io.microsphere.netflix.eureka.spring.cloud.tomcat.servlet.listener.ReplicatedInstanceListener;
+import jakarta.annotation.PreDestroy;
+import jakarta.servlet.Servlet;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.ServletContextAttributeEvent;
+import jakarta.servlet.ServletContextAttributeListener;
+import jakarta.servlet.ServletException;
 import org.apache.catalina.Context;
 import org.apache.catalina.Host;
 import org.apache.catalina.connector.Connector;
@@ -53,12 +59,6 @@ import org.springframework.util.StreamUtils;
 import org.springframework.util.StringValueResolver;
 import org.xml.sax.InputSource;
 
-import javax.annotation.PreDestroy;
-import javax.servlet.Servlet;
-import javax.servlet.ServletContext;
-import javax.servlet.ServletContextAttributeEvent;
-import javax.servlet.ServletContextAttributeListener;
-import javax.servlet.ServletException;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.io.StringReader;
@@ -77,7 +77,9 @@ import java.util.Map;
  * @since 1.0.0
  */
 @ConditionalOnClass(
-        value = {Servlet.class},
+        value = {
+                Servlet.class
+        },
         name = {
                 "org.apache.catalina.startup.Tomcat",
                 "org.apache.catalina.ha.tcp.SimpleTcpCluster",

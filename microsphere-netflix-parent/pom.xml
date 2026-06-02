@@ -21,6 +21,7 @@
     <properties>
         <microsphere-spring-cloud.version>0.2.15</microsphere-spring-cloud.version>
         <microsphere-bom.version>0.2.5</microsphere-bom.version>
+        <jakartaee.version>11.0.0</jakartaee.version>
         <jersey.version>1.19.4</jersey.version>
     </properties>
 
@@ -32,6 +33,15 @@
                 <groupId>io.github.microsphere-projects</groupId>
                 <artifactId>microsphere-spring-cloud-dependencies</artifactId>
                 <version>${microsphere-spring-cloud.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <!-- Jakarta EE -->
+            <dependency>
+                <groupId>jakarta.platform</groupId>
+                <artifactId>jakarta.jakartaee-bom</artifactId>
+                <version>${jakartaee.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
