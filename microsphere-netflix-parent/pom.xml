@@ -20,7 +20,7 @@
 
     <properties>
         <microsphere-spring-cloud.version>0.0.1</microsphere-spring-cloud.version>
-        <tomcat.version>9.0.83</tomcat.version>
+        <tomcat.version>11.0.22</tomcat.version>
         <jersey.version>1.19.4</jersey.version>
     </properties>
 
