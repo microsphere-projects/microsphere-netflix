@@ -19,8 +19,8 @@
     <description>Microsphere Netflix Parent</description>
 
     <properties>
-        <microsphere-spring-cloud.version>0.0.1</microsphere-spring-cloud.version>
-        <tomcat.version>9.0.83</tomcat.version>
+        <microsphere-spring-cloud.version>0.2.15</microsphere-spring-cloud.version>
+        <tomcat.version>11.0.22</tomcat.version>
         <jersey.version>1.19.4</jersey.version>
     </properties>
 
@@ -32,6 +32,15 @@
                 <groupId>io.github.microsphere-projects</groupId>
                 <artifactId>microsphere-spring-cloud-dependencies</artifactId>
                 <version>${microsphere-spring-cloud.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <!-- Apache Tomcat BOM -->
+            <dependency>
+                <groupId>io.github.microsphere-projects</groupId>
+                <artifactId>microsphere-tomcat-bom</artifactId>
+                <version>${tomcat.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
