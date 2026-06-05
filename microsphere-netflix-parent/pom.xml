@@ -20,7 +20,7 @@
 
     <properties>
         <microsphere-spring-cloud.version>0.2.15</microsphere-spring-cloud.version>
-        <microsphere-bom.version>0.2.5</microsphere-bom.version>
+        <microsphere-bom.version>0.2.6</microsphere-bom.version>
         <jakartaee.version>11.0.0</jakartaee.version>
         <jersey.version>1.19.4</jersey.version>
     </properties>
