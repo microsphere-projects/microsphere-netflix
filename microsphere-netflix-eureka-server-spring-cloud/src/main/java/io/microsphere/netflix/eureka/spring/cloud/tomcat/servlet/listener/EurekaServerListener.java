@@ -23,12 +23,12 @@ import com.netflix.eureka.EurekaServerContext;
 import com.netflix.eureka.registry.PeerAwareInstanceRegistry;
 import com.netflix.eureka.registry.PeerAwareInstanceRegistryImpl;
 import com.netflix.eureka.resources.ServerCodecs;
+import io.microsphere.logging.Logger;
+import io.microsphere.logging.LoggerFactory;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletContextEvent;
 import jakarta.servlet.ServletContextListener;
 import jakarta.servlet.http.HttpServletRequest;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.netflix.eureka.server.event.EurekaInstanceCanceledEvent;
@@ -38,11 +38,11 @@ import org.springframework.context.event.EventListener;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-
 import java.io.IOException;
 import java.util.Map;
 
 import static com.netflix.eureka.registry.PeerAwareInstanceRegistryImpl.Action.Cancel;
+import static io.microsphere.logging.LoggerFactory.getLogger;
 import static io.microsphere.netflix.eureka.spring.cloud.tomcat.servlet.listener.ReplicatedInstanceListener.ACTION_METADATA_KEY;
 import static io.microsphere.netflix.eureka.spring.cloud.tomcat.servlet.listener.ReplicatedInstanceListener.REPLICATION_INSTANCE_NAME_PREFIX;
 import static org.springframework.web.context.request.RequestContextHolder.getRequestAttributes;
@@ -55,7 +55,7 @@ import static org.springframework.web.context.request.RequestContextHolder.getRe
  */
 public class EurekaServerListener implements ServletContextListener {
 
-    private static final Logger logger = LoggerFactory.getLogger(EurekaServerListener.class);
+    private static final Logger logger = getLogger(EurekaServerListener.class);
 
     public static final String EUREKA_SERVER_LISTENER_ATTRIBUTE_NAME = "EurekaServerListener";
 

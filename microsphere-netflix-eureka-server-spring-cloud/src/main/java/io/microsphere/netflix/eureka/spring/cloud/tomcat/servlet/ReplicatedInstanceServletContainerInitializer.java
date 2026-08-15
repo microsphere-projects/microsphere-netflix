@@ -16,8 +16,13 @@
  */
 package io.microsphere.netflix.eureka.spring.cloud.tomcat.servlet;
 
+import io.microsphere.logging.Logger;
+import io.microsphere.logging.LoggerFactory;
 import io.microsphere.netflix.eureka.spring.cloud.tomcat.servlet.listener.EurekaServerListener;
 import io.microsphere.netflix.eureka.spring.cloud.tomcat.servlet.listener.ReplicatedInstanceListener;
+import jakarta.servlet.ServletContainerInitializer;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.ServletException;
 import org.apache.catalina.Cluster;
 import org.apache.catalina.Container;
 import org.apache.catalina.Context;
@@ -28,14 +33,10 @@ import org.apache.catalina.Service;
 import org.apache.catalina.core.ApplicationContext;
 import org.apache.catalina.ha.CatalinaCluster;
 import org.apache.catalina.tribes.Channel;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import jakarta.servlet.ServletContainerInitializer;
-import jakarta.servlet.ServletContext;
-import jakarta.servlet.ServletException;
 import java.util.Set;
 
+import static io.microsphere.logging.LoggerFactory.getLogger;
 import static org.springframework.util.ReflectionUtils.doWithFields;
 import static org.springframework.util.ReflectionUtils.makeAccessible;
 
@@ -48,7 +49,7 @@ import static org.springframework.util.ReflectionUtils.makeAccessible;
  */
 public class ReplicatedInstanceServletContainerInitializer implements ServletContainerInitializer {
 
-    private static final Logger logger = LoggerFactory.getLogger(ReplicatedInstanceServletContainerInitializer.class);
+    private static final Logger logger = getLogger(ReplicatedInstanceServletContainerInitializer.class);
 
     @Override
     public void onStartup(Set<Class<?>> c, ServletContext servletContext) throws ServletException {

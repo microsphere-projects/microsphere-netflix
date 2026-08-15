@@ -17,8 +17,10 @@
 package io.microsphere.netflix.eureka.client.spring.cloud.constants;
 
 import com.netflix.discovery.EurekaClient;
+import io.microsphere.annotation.ConfigurationProperty;
 import org.springframework.cloud.netflix.eureka.CloudEurekaClient;
 
+import static io.microsphere.annotation.ConfigurationProperty.APPLICATION_SOURCE;
 import static io.microsphere.constants.PropertyConstants.ENABLED_PROPERTY_NAME;
 import static io.microsphere.spring.cloud.commons.constants.CommonsPropertyConstants.MICROSPHERE_SPRING_CLOUD_PROPERTY_NAME_PREFIX;
 
@@ -38,6 +40,11 @@ public interface EurekaClientConstants {
     /**
      * The "enabled" property name of Microsphere {@link EurekaClient} Features: "microsphere.spring.cloud.eureka.client.enabled"
      */
+    @ConfigurationProperty(
+            type = boolean.class,
+            defaultValue = "true",
+            source = APPLICATION_SOURCE
+    )
     String EUREKA_CLIENT_ENABLED_PROPERTY_NAME = EUREKA_CLIENT_PROPERTY_PREFIX + ENABLED_PROPERTY_NAME;
 
     /**
@@ -48,6 +55,11 @@ public interface EurekaClientConstants {
     /**
      * The "enabled" property name of Microsphere multiple {@link EurekaClient} feature: "microsphere.spring.cloud.eureka.client.multiple"
      */
+    @ConfigurationProperty(
+            type = boolean.class,
+            defaultValue = "false",
+            source = APPLICATION_SOURCE
+    )
     String EUREKA_CLIENT_MULTIPLE_PROPERTY_NAME = EUREKA_CLIENT_PROPERTY_PREFIX + MULTIPLE_PROPERTY_NAME;
 
     /**

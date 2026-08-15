@@ -19,13 +19,21 @@
 
     <dependencies>
 
-        <!-- Microsphere -->
+        <!-- Microsphere Annotation Processor -->
+        <dependency>
+            <groupId>io.github.microsphere-projects</groupId>
+            <artifactId>microsphere-annotation-processor</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- Microsphere Netflix Eureka Client Core -->
         <dependency>
             <groupId>io.github.microsphere-projects</groupId>
             <artifactId>microsphere-netflix-eureka-client-core</artifactId>
             <version>${revision}</version>
         </dependency>
 
+        <!-- Microsphere Spring Cloud Commons -->
         <dependency>
             <groupId>io.github.microsphere-projects</groupId>
             <artifactId>microsphere-spring-cloud-commons</artifactId>

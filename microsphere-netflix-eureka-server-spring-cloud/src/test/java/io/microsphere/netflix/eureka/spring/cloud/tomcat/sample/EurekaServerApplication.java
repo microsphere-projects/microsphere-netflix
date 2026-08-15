@@ -16,10 +16,10 @@
  */
 package io.microsphere.netflix.eureka.spring.cloud.tomcat.sample;
 
+import io.microsphere.logging.Logger;
+import io.microsphere.logging.LoggerFactory;
 import io.microsphere.netflix.eureka.spring.cloud.tomcat.servlet.listener.EurekaServerListener;
 import io.microsphere.spring.webmvc.annotation.EnableWebMvcExtension;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -28,6 +28,8 @@ import org.springframework.boot.web.servlet.support.SpringBootServletInitializer
 import org.springframework.cloud.netflix.eureka.server.EnableEurekaServer;
 import org.springframework.context.annotation.Import;
 import org.springframework.scheduling.annotation.EnableScheduling;
+
+import static io.microsphere.logging.LoggerFactory.getLogger;
 
 
 /**
@@ -43,7 +45,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableWebMvcExtension
 public class EurekaServerApplication extends SpringBootServletInitializer {
 
-    private static final Logger logger = LoggerFactory.getLogger(EurekaServerApplication.class);
+    private static final Logger logger = getLogger(EurekaServerApplication.class);
 
     public static void main(String[] args) {
         SpringApplication.run(EurekaServerApplication.class, args);

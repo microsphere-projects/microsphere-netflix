@@ -19,16 +19,18 @@
 
     <dependencies>
 
-        <!-- Microsphere -->
+        <!-- Microsphere Annotation Processor -->
+        <dependency>
+            <groupId>io.github.microsphere-projects</groupId>
+            <artifactId>microsphere-annotation-processor</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- Microsphere Eureka Client Spring Cloud -->
         <dependency>
             <groupId>io.github.microsphere-projects</groupId>
             <artifactId>microsphere-netflix-eureka-client-spring-cloud</artifactId>
             <version>${revision}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>io.github.microsphere-projects</groupId>
-            <artifactId>microsphere-spring-webmvc</artifactId>
         </dependency>
 
         <!-- Servlet API -->
@@ -36,12 +38,6 @@
             <groupId>jakarta.servlet</groupId>
             <artifactId>jakarta.servlet-api</artifactId>
             <scope>provided</scope>
-        </dependency>
-
-        <!-- Inject API -->
-        <dependency>
-            <groupId>jakarta.inject</groupId>
-            <artifactId>jakarta.inject-api</artifactId>
         </dependency>
 
         <!-- Spring Cloud Netflix Eureka -->
@@ -56,32 +52,10 @@
             </exclusions>
         </dependency>
 
+        <!-- Spring Boot Actuator -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
-        </dependency>
-
-        <!-- Netflix Eureka Client -->
-        <dependency>
-            <groupId>com.netflix.eureka</groupId>
-            <artifactId>eureka-core</artifactId>
-            <optional>true</optional>
-        </dependency>
-
-        <!-- Jersey -->
-        <dependency>
-            <groupId>com.sun.jersey</groupId>
-            <artifactId>jersey-servlet</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>com.sun.jersey</groupId>
-            <artifactId>jersey-server</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>com.sun.jersey</groupId>
-            <artifactId>jersey-client</artifactId>
         </dependency>
 
         <!-- Apache Tomcat -->
@@ -106,13 +80,7 @@
         <!-- Testing -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-api</artifactId>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-engine</artifactId>
+            <artifactId>junit-jupiter</artifactId>
             <scope>test</scope>
         </dependency>
 

@@ -16,6 +16,8 @@
  */
 package io.microsphere.netflix.eureka.spring.cloud.tomcat.autoconfigure;
 
+import io.microsphere.logging.Logger;
+import io.microsphere.logging.LoggerFactory;
 import io.microsphere.netflix.eureka.spring.cloud.tomcat.servlet.listener.EurekaServerListener;
 import io.microsphere.netflix.eureka.spring.cloud.tomcat.servlet.listener.ReplicatedInstanceListener;
 import jakarta.annotation.PreDestroy;
@@ -34,8 +36,6 @@ import org.apache.catalina.tribes.Channel;
 import org.apache.catalina.tribes.tipis.AbstractReplicatedMap;
 import org.apache.catalina.tribes.tipis.ReplicatedMap;
 import org.apache.tomcat.util.digester.Digester;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.annotation.Value;
@@ -68,6 +68,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static io.microsphere.logging.LoggerFactory.getLogger;
+
 /**
  * Eureka Server Tomcat {@link Configuration @Configuration}
  *
@@ -92,7 +94,7 @@ public class EurekaServerEmbeddedTomcatAutoConfiguration implements EmbeddedValu
         BeanNameAware,
         AbstractReplicatedMap.MapOwner {
 
-    private static final Logger logger = LoggerFactory.getLogger(EurekaServerEmbeddedTomcatAutoConfiguration.class);
+    private static final Logger logger = getLogger(EurekaServerEmbeddedTomcatAutoConfiguration.class);
 
     @Value("classpath:/META-INF/conf/cluster.xml")
     private Resource resource;

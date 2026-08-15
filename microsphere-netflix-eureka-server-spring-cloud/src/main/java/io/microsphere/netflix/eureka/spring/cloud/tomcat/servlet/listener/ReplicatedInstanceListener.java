@@ -22,6 +22,8 @@ import com.netflix.eureka.EurekaServerContext;
 import com.netflix.eureka.registry.PeerAwareInstanceRegistry;
 import com.netflix.eureka.registry.PeerAwareInstanceRegistryImpl;
 import com.netflix.eureka.resources.ServerCodecs;
+import io.microsphere.logging.Logger;
+import io.microsphere.logging.LoggerFactory;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletContextAttributeEvent;
 import jakarta.servlet.ServletContextAttributeListener;
@@ -30,8 +32,6 @@ import jakarta.servlet.ServletContextListener;
 import org.apache.catalina.tribes.ChannelListener;
 import org.apache.catalina.tribes.Member;
 import org.apache.catalina.tribes.tipis.AbstractReplicatedMap;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 
 import java.io.IOException;
@@ -42,6 +42,8 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+
+import static io.microsphere.logging.LoggerFactory.getLogger;
 
 /**
  * Replicated Instance Listener implements
@@ -59,7 +61,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class ReplicatedInstanceListener implements ServletContextListener, ServletContextAttributeListener, ChannelListener {
 
-    private static final Logger logger = LoggerFactory.getLogger(ReplicatedInstanceListener.class);
+    private static final Logger logger = getLogger(ReplicatedInstanceListener.class);
 
     public static final String ACTION_METADATA_KEY = "_action_";
 
