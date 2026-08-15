@@ -17,27 +17,32 @@
 package io.microsphere.netflix.eureka.client.spring.cloud.condition;
 
 import com.netflix.discovery.EurekaClient;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-import static io.microsphere.netflix.eureka.client.spring.cloud.constants.EurekaClientConstants.EUREKA_CLIENT_ENABLED_PROPERTY_NAME;
+import static io.microsphere.netflix.eureka.client.spring.cloud.constants.EurekaClientConstants.CLOUD_EUREKA_CLIENT_CLASS_NAME;
+import static io.microsphere.netflix.eureka.client.spring.cloud.constants.EurekaClientConstants.EUREKA_CLIENT_CLASS_NAME;
 import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
- * Provides a more succinct conditional {@link EurekaClient} Enabled
+ * Provides a more succinct conditional {@link EurekaClient} Available
  *
  * @author <a href="mailto:mercyblitz@gmail.com">Mercy</a>
+ * @see ConditionalOnEurekaClientEnabled
  * @since 1.0.0
  */
 @Retention(RUNTIME)
 @Target({TYPE, METHOD})
 @Documented
-@ConditionalOnProperty(value = "eureka.client.enabled", matchIfMissing = true)
-@ConditionalOnProperty(name = EUREKA_CLIENT_ENABLED_PROPERTY_NAME, matchIfMissing = true)
-public @interface ConditionalOnEurekaClientEnabled {
+@ConditionalOnClass(name = {
+        EUREKA_CLIENT_CLASS_NAME,       // Netflix Eureka Client API
+        CLOUD_EUREKA_CLIENT_CLASS_NAME  // Spring Cloud Netflix Eureka Client API
+})
+@ConditionalOnEurekaClientEnabled
+public @interface ConditionalOnEurekaClientAvailable {
 }

@@ -19,12 +19,10 @@ package io.microsphere.netflix.eureka.client.spring.cloud.autoconfigure;
 import com.netflix.appinfo.ApplicationInfoManager;
 import com.netflix.appinfo.InstanceInfo;
 import com.netflix.discovery.EurekaClient;
-import io.microsphere.netflix.eureka.client.spring.cloud.condition.ConditionalOnEurekaClientEnabled;
+import io.microsphere.netflix.eureka.client.spring.cloud.condition.ConditionalOnEurekaClientAvailable;
 import io.microsphere.spring.cloud.client.service.registry.MultipleRegistration;
 import io.microsphere.spring.cloud.client.service.registry.event.RegistrationPreRegisteredEvent;
-import io.microsphere.spring.guice.annotation.EnableGuice;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cloud.client.ConditionalOnDiscoveryEnabled;
 import org.springframework.cloud.client.serviceregistry.Registration;
 import org.springframework.cloud.netflix.eureka.serviceregistry.EurekaRegistration;
@@ -33,20 +31,15 @@ import org.springframework.context.event.EventListener;
 
 import java.util.Map;
 
-import static io.microsphere.netflix.eureka.client.spring.cloud.constants.EurekaClientConstants.ENABLED_PROPERTY_NAME;
-import static io.microsphere.netflix.eureka.client.spring.cloud.constants.EurekaClientConstants.EUREKA_CLIENT_PROPERTY_PREFIX;
-
 /**
  * Auto-Configuration Class to enhance {@link EurekaClient}
  *
  * @author <a href="mailto:mercyblitz@gmail.com">Mercy</a>
  * @since 1.0.0
  */
-@EnableGuice
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnDiscoveryEnabled
-@ConditionalOnEurekaClientEnabled
-@ConditionalOnProperty(prefix = EUREKA_CLIENT_PROPERTY_PREFIX, name = ENABLED_PROPERTY_NAME, matchIfMissing = true)
+@ConditionalOnEurekaClientAvailable
 @AutoConfigureAfter(name = {
         "org.springframework.cloud.netflix.eureka.EurekaClientAutoConfiguration",
         "org.springframework.cloud.netflix.eureka.config.DiscoveryClientOptionalArgsConfiguration"

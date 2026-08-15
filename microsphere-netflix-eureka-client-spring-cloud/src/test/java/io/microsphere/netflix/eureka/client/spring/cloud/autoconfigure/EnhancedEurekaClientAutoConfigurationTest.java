@@ -17,7 +17,7 @@
 package io.microsphere.netflix.eureka.client.spring.cloud.autoconfigure;
 
 import com.netflix.appinfo.HealthCheckHandler;
-import com.netflix.discovery.EurekaEventListener;
+import com.netflix.discovery.CacheRefreshedEvent;
 import com.netflix.discovery.PreRegistrationHandler;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,11 +25,13 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.client.serviceregistry.Registration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.event.EventListener;
 
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static java.lang.Thread.sleep;
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -67,11 +69,9 @@ public class EnhancedEurekaClientAutoConfigurationTest {
             };
         }
 
-        @Bean
-        public EurekaEventListener eurekaEventListener() {
-            return event -> {
-                System.out.println(event);
-            };
+        @EventListener(CacheRefreshedEvent.class)
+        public void onCacheRefreshedEvent(CacheRefreshedEvent event) {
+            assertNotNull(event);
         }
 
         @Bean
@@ -83,7 +83,7 @@ public class EnhancedEurekaClientAutoConfigurationTest {
     @Test
     public void test() throws Throwable {
         registration.getMetadata().put("key", "value");
-        sleep(TimeUnit.SECONDS.toMillis(1));
+        sleep(SECONDS.toMillis(1));
         assertTrue(preRegistered.get());
     }
 }

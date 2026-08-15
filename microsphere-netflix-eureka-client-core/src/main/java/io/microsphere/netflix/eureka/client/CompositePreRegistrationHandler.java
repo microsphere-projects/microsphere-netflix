@@ -17,6 +17,7 @@
 
 package io.microsphere.netflix.eureka.client;
 
+import com.netflix.discovery.DiscoveryClient;
 import com.netflix.discovery.PreRegistrationHandler;
 import io.microsphere.annotation.Immutable;
 import io.microsphere.annotation.Nonnull;
@@ -35,6 +36,7 @@ import static java.util.Collections.unmodifiableList;
  *
  * @author <a href="mailto:mercyblitz@gmail.com">Mercy</a>
  * @see PreRegistrationHandler
+ * @see DiscoveryClient
  * @see Prioritized
  * @since 1.0.0
  */

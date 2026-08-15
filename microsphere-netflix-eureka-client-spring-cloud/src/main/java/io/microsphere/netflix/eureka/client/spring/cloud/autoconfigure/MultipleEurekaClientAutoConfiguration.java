@@ -25,11 +25,10 @@ import com.netflix.discovery.EurekaClientConfig;
 import com.netflix.discovery.shared.Application;
 import com.netflix.discovery.shared.Applications;
 import com.netflix.discovery.shared.transport.jersey.TransportClientFactories;
-import io.microsphere.netflix.eureka.client.spring.cloud.condition.ConditionalOnEurekaClientEnabled;
+import io.microsphere.netflix.eureka.client.spring.cloud.condition.ConditionalOnEurekaClientAvailable;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.springframework.aop.PointcutAdvisor;
-import org.springframework.aop.support.AopUtils;
 import org.springframework.aop.support.NameMatchMethodPointcutAdvisor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.ObjectProvider;
@@ -42,6 +41,7 @@ import org.springframework.cloud.netflix.eureka.CloudEurekaClient;
 import org.springframework.cloud.netflix.eureka.EurekaClientConfigBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Role;
 import org.springframework.context.event.EventListener;
 
@@ -50,8 +50,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static io.microsphere.netflix.eureka.client.spring.cloud.constants.EurekaClientConstants.EUREKA_CLIENT_PROPERTY_PREFIX;
-import static io.microsphere.netflix.eureka.client.spring.cloud.constants.EurekaClientConstants.MULTIPLE_PROPERTY_NAME;
+import static io.microsphere.netflix.eureka.client.spring.cloud.autoconfigure.MultipleEurekaClientAutoConfiguration.EurekaClientMethodInterceptor.GET_APPLICATIONS_METHOD_NAME;
+import static io.microsphere.netflix.eureka.client.spring.cloud.autoconfigure.MultipleEurekaClientAutoConfiguration.EurekaClientMethodInterceptor.GET_INSTANCES_BY_VIP_ADDRESS_METHOD_NAME;
+import static io.microsphere.netflix.eureka.client.spring.cloud.constants.EurekaClientConstants.EUREKA_CLIENT_MULTIPLE_PROPERTY_NAME;
+import static org.springframework.aop.support.AopUtils.isAopProxy;
 import static org.springframework.beans.factory.config.BeanDefinition.ROLE_INFRASTRUCTURE;
 import static org.springframework.cloud.netflix.eureka.EurekaClientConfigBean.DEFAULT_ZONE;
 
@@ -65,11 +67,14 @@ import static org.springframework.cloud.netflix.eureka.EurekaClientConfigBean.DE
  */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnDiscoveryEnabled
-@ConditionalOnEurekaClientEnabled
-@ConditionalOnProperty(prefix = EUREKA_CLIENT_PROPERTY_PREFIX, name = MULTIPLE_PROPERTY_NAME)
+@ConditionalOnEurekaClientAvailable
+@ConditionalOnProperty(name = EUREKA_CLIENT_MULTIPLE_PROPERTY_NAME)
 @AutoConfigureAfter(name = {
         "org.springframework.cloud.netflix.eureka.EurekaClientAutoConfiguration",
         "org.springframework.cloud.netflix.eureka.config.DiscoveryClientOptionalArgsConfiguration"
+})
+@Import(value = {
+        MultipleEurekaClientAutoConfiguration.EventConfig.class
 })
 public class MultipleEurekaClientAutoConfiguration {
 
@@ -102,13 +107,17 @@ public class MultipleEurekaClientAutoConfiguration {
     public PointcutAdvisor eurekaClientAdvisor() {
         NameMatchMethodPointcutAdvisor advisor = new NameMatchMethodPointcutAdvisor();
         advisor.setClassFilter(clazz -> CloudEurekaClient.class.isAssignableFrom(clazz));
-        advisor.addMethodName("getApplications");
-        advisor.addMethodName("getInstancesByVipAddress");
+        advisor.addMethodName(GET_APPLICATIONS_METHOD_NAME);
+        advisor.addMethodName(GET_INSTANCES_BY_VIP_ADDRESS_METHOD_NAME);
         advisor.setAdvice(new EurekaClientMethodInterceptor());
         return advisor;
     }
 
     class EurekaClientMethodInterceptor implements MethodInterceptor {
+
+        public static final String GET_APPLICATIONS_METHOD_NAME = "getApplications";
+
+        public static final String GET_INSTANCES_BY_VIP_ADDRESS_METHOD_NAME = "getInstancesByVipAddress";
 
         @Override
         public Object invoke(MethodInvocation invocation) throws Throwable {
@@ -116,9 +125,9 @@ public class MultipleEurekaClientAutoConfiguration {
             Method method = invocation.getMethod();
             String methodName = method.getName();
             switch (methodName) {
-                case "getApplications":
+                case GET_APPLICATIONS_METHOD_NAME:
                     return doGetApplications(invocation, method);
-                case "getInstancesByVipAddress":
+                case GET_INSTANCES_BY_VIP_ADDRESS_METHOD_NAME:
                     return doGetInstancesByVipAddress(invocation, method);
                 default:
                     return invocation.proceed();
@@ -129,7 +138,7 @@ public class MultipleEurekaClientAutoConfiguration {
             Applications combinedApplications = new Applications();
             for (EurekaClient eurekaClient : eurekaClients) {
                 final Applications applications;
-                if (AopUtils.isAopProxy(eurekaClient)) {
+                if (isAopProxy(eurekaClient)) {
                     applications = (Applications) invocation.proceed();
                 } else {
                     Object[] args = invocation.getArguments();
@@ -147,7 +156,7 @@ public class MultipleEurekaClientAutoConfiguration {
             List<InstanceInfo> combinedInstances = new ArrayList<>();
             for (EurekaClient eurekaClient : eurekaClients) {
                 final List<InstanceInfo> infos;
-                if (AopUtils.isAopProxy(eurekaClient)) {
+                if (isAopProxy(eurekaClient)) {
                     infos = (List<InstanceInfo>) invocation.proceed();
                 } else {
                     Object[] args = invocation.getArguments();
@@ -167,7 +176,6 @@ public class MultipleEurekaClientAutoConfiguration {
             initEurekaClients();
         }
     }
-
 
     private void initEurekaClients() {
         if (eurekaClients == null) {

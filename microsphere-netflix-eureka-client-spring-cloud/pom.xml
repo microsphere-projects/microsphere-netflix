@@ -31,18 +31,6 @@
             <artifactId>microsphere-spring-cloud-commons</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>io.github.microsphere-projects</groupId>
-            <artifactId>microsphere-spring-guice</artifactId>
-        </dependency>
-
-        <!-- Google Guice IoC Framework -->
-        <dependency>
-            <groupId>com.google.inject</groupId>
-            <artifactId>guice</artifactId>
-            <optional>true</optional>
-        </dependency>
-
         <!-- Spring Cloud Dependencies -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
