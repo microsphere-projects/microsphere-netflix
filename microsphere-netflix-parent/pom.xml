@@ -21,9 +21,6 @@
     <properties>
         <microsphere-spring-cloud.version>0.2.25</microsphere-spring-cloud.version>
         <microsphere-bom.version>0.3.9</microsphere-bom.version>
-        <jakartaee.version>11.0.0</jakartaee.version>
-        <guice.version>7.0.0</guice.version>
-        <jersey.version>1.19.4</jersey.version>
     </properties>
 
     <dependencyManagement>
@@ -38,48 +35,22 @@
                 <scope>import</scope>
             </dependency>
 
-            <!-- Jakarta EE -->
+            <!-- Microsphere Jakarta EE -->
             <dependency>
-                <groupId>jakarta.platform</groupId>
-                <artifactId>jakarta.jakartaee-bom</artifactId>
-                <version>${jakartaee.version}</version>
+                <groupId>io.github.microsphere-projects</groupId>
+                <artifactId>microsphere-javaee-bom</artifactId>
+                <version>${microsphere-bom.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
 
-            <!-- Apache Tomcat BOM -->
+            <!-- Microsphere Tomcat BOM -->
             <dependency>
                 <groupId>io.github.microsphere-projects</groupId>
                 <artifactId>microsphere-tomcat-bom</artifactId>
                 <version>${microsphere-bom.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
-            </dependency>
-
-            <!-- Google Guice IoC Framework -->
-            <dependency>
-                <groupId>com.google.inject</groupId>
-                <artifactId>guice</artifactId>
-                <version>${guice.version}</version>
-            </dependency>
-
-            <!-- Jersey -->
-            <dependency>
-                <groupId>com.sun.jersey</groupId>
-                <artifactId>jersey-servlet</artifactId>
-                <version>${jersey.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.sun.jersey</groupId>
-                <artifactId>jersey-server</artifactId>
-                <version>${jersey.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.sun.jersey</groupId>
-                <artifactId>jersey-client</artifactId>
-                <version>${jersey.version}</version>
             </dependency>
 
         </dependencies>
