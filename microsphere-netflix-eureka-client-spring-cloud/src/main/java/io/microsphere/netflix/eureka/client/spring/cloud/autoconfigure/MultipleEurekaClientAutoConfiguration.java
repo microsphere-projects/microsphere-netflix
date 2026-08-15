@@ -24,6 +24,7 @@ import com.netflix.discovery.EurekaClient;
 import com.netflix.discovery.EurekaClientConfig;
 import com.netflix.discovery.shared.Application;
 import com.netflix.discovery.shared.Applications;
+import com.netflix.discovery.shared.transport.jersey.TransportClientFactories;
 import io.microsphere.netflix.eureka.client.spring.cloud.condition.ConditionalOnEurekaClientEnabled;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
@@ -37,7 +38,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cloud.client.ConditionalOnDiscoveryEnabled;
 import org.springframework.cloud.client.discovery.event.InstanceRegisteredEvent;
-import org.springframework.cloud.netflix.eureka.EurekaClientAutoConfiguration;
+import org.springframework.cloud.netflix.eureka.CloudEurekaClient;
 import org.springframework.cloud.netflix.eureka.EurekaClientConfigBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -58,31 +59,40 @@ import static org.springframework.cloud.netflix.eureka.EurekaClientConfigBean.DE
  * Auto-Configuration Class to support multiple {@link EurekaClient}
  *
  * @author <a href="mailto:mercyblitz@gmail.com">Mercy</a>
+ * @see org.springframework.cloud.netflix.eureka.EurekaClientAutoConfiguration
+ * @see org.springframework.cloud.netflix.eureka.config.DiscoveryClientOptionalArgsConfiguration
  * @since 1.0.0
  */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnDiscoveryEnabled
 @ConditionalOnEurekaClientEnabled
 @ConditionalOnProperty(prefix = EUREKA_CLIENT_PROPERTY_PREFIX, name = MULTIPLE_PROPERTY_NAME)
-@AutoConfigureAfter(EurekaClientAutoConfiguration.class)
+@AutoConfigureAfter(name = {
+        "org.springframework.cloud.netflix.eureka.EurekaClientAutoConfiguration",
+        "org.springframework.cloud.netflix.eureka.config.DiscoveryClientOptionalArgsConfiguration"
+})
 public class MultipleEurekaClientAutoConfiguration {
 
-    private final ApplicationInfoManager applicationInfoManager;
+    private final ObjectProvider<ApplicationInfoManager> applicationInfoManager;
 
-    private final EurekaClientConfig eurekaClientConfig;
+    private final ObjectProvider<EurekaClientConfig> eurekaClientConfig;
 
-    private final AbstractDiscoveryClientOptionalArgs<?> optionalArgs;
+    private final ObjectProvider<TransportClientFactories> transportClientFactories;
+
+    private final ObjectProvider<AbstractDiscoveryClientOptionalArgs<?>> optionalArgs;
 
     private final ObjectProvider<EurekaClient> eurekaClientObjectProvider;
 
     private List<EurekaClient> eurekaClients; // EurekaClient list as the local storage
 
-    public MultipleEurekaClientAutoConfiguration(ApplicationInfoManager applicationInfoManager,
-                                                 EurekaClientConfig eurekaClientConfig,
-                                                 AbstractDiscoveryClientOptionalArgs<?> optionalArgs,
+    public MultipleEurekaClientAutoConfiguration(ObjectProvider<ApplicationInfoManager> applicationInfoManager,
+                                                 ObjectProvider<EurekaClientConfig> eurekaClientConfig,
+                                                 ObjectProvider<TransportClientFactories> transportClientFactories,
+                                                 ObjectProvider<AbstractDiscoveryClientOptionalArgs<?>> optionalArgs,
                                                  ObjectProvider<EurekaClient> eurekaClientObjectProvider) {
         this.applicationInfoManager = applicationInfoManager;
         this.eurekaClientConfig = eurekaClientConfig;
+        this.transportClientFactories = transportClientFactories;
         this.optionalArgs = optionalArgs;
         this.eurekaClientObjectProvider = eurekaClientObjectProvider;
     }
@@ -91,7 +101,7 @@ public class MultipleEurekaClientAutoConfiguration {
     @Role(ROLE_INFRASTRUCTURE)
     public PointcutAdvisor eurekaClientAdvisor() {
         NameMatchMethodPointcutAdvisor advisor = new NameMatchMethodPointcutAdvisor();
-        advisor.setClassFilter(clazz -> EurekaClient.class.isAssignableFrom(clazz));
+        advisor.setClassFilter(clazz -> CloudEurekaClient.class.isAssignableFrom(clazz));
         advisor.addMethodName("getApplications");
         advisor.addMethodName("getInstancesByVipAddress");
         advisor.setAdvice(new EurekaClientMethodInterceptor());
@@ -161,7 +171,7 @@ public class MultipleEurekaClientAutoConfiguration {
 
     private void initEurekaClients() {
         if (eurekaClients == null) {
-            EurekaClientConfig eurekaClientConfig = this.eurekaClientConfig;
+            EurekaClientConfig eurekaClientConfig = this.eurekaClientConfig.getIfAvailable();
             List<String> serviceUrls = eurekaClientConfig.getEurekaServerServiceUrls(DEFAULT_ZONE);
             eurekaClients = new ArrayList<>(serviceUrls.size());
             eurekaClients.add(eurekaClientObjectProvider.getIfAvailable());
@@ -174,7 +184,8 @@ public class MultipleEurekaClientAutoConfiguration {
 
     private EurekaClient createCustomizedEurekaClient(EurekaClientConfig eurekaClientConfig, int index) {
         EurekaClientConfig customizedEurekaClientConfig = customizeEurekaClientConfig(eurekaClientConfig, index);
-        EurekaClient eurekaClient = new DiscoveryClient(applicationInfoManager, customizedEurekaClientConfig, optionalArgs);
+        EurekaClient eurekaClient = new DiscoveryClient(this.applicationInfoManager.getIfAvailable(),
+                customizedEurekaClientConfig, this.transportClientFactories.getIfAvailable(), this.optionalArgs.getIfAvailable());
         return eurekaClient;
     }
 

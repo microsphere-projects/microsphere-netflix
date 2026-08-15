@@ -19,8 +19,21 @@
 
     <dependencies>
 
-        <!-- Netflix Eureka Client -->
+        <!-- Microsphere Annotation Processor -->
+        <dependency>
+            <groupId>io.github.microsphere-projects</groupId>
+            <artifactId>microsphere-annotation-processor</artifactId>
+            <optional>true</optional>
+        </dependency>
 
+        <!-- Microsphere Java Core -->
+        <dependency>
+            <groupId>io.github.microsphere-projects</groupId>
+            <artifactId>microsphere-java-core</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- Netflix Eureka Client -->
         <dependency>
             <groupId>com.netflix.eureka</groupId>
             <artifactId>eureka-client</artifactId>
@@ -30,13 +43,14 @@
         <!-- Testing -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-api</artifactId>
+            <artifactId>junit-jupiter</artifactId>
             <scope>test</scope>
         </dependency>
 
+        <!-- Microsphere Java Test -->
         <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-engine</artifactId>
+            <groupId>io.github.microsphere-projects</groupId>
+            <artifactId>microsphere-java-test</artifactId>
             <scope>test</scope>
         </dependency>
 

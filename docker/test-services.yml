@@ -1,0 +1,7 @@
+services:
+  eureka:
+    image: aliaksandrvoitko/eureka-server
+    ports:
+      - "8761:8761"
+    environment:
+      - SERVER_PORT=8761

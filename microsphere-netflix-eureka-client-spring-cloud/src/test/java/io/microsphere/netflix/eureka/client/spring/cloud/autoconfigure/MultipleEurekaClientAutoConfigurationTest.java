@@ -18,17 +18,15 @@ package io.microsphere.netflix.eureka.client.spring.cloud.autoconfigure;
 
 import com.netflix.discovery.EurekaClient;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.cloud.netflix.eureka.server.EnableEurekaServer;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import static java.lang.Thread.sleep;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
@@ -37,20 +35,17 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * @author <a href="mailto:mercyblitz@gmail.com">Mercy</a>
  * @since 1.0.0
  */
-@ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = {
-        MultipleEurekaClientAutoConfigurationTest.class
-})
-@TestPropertySource(
+@SpringBootTest(
+        classes = {
+                MultipleEurekaClientAutoConfigurationTest.class
+        },
         properties = {
                 "spring.application.name=test-eureka",
-                "server.port=12345",
-                "eureka.client.serviceUrl.defaultZone=http://127.0.0.1:12345/eureka,http://127.0.0.1:12345/eureka",
+                "eureka.client.serviceUrl.defaultZone=http://127.0.0.1:8761/eureka,http://127.0.0.1:8761/eureka",
                 "microsphere.spring.cloud.eureka.client.multiple=true"
         }
 )
 @EnableAutoConfiguration
-@EnableEurekaServer
 public class MultipleEurekaClientAutoConfigurationTest {
 
     @Autowired
@@ -58,7 +53,7 @@ public class MultipleEurekaClientAutoConfigurationTest {
 
     @Test
     public void test() throws Throwable {
-        Thread.sleep(TimeUnit.SECONDS.toMillis(1));
+        sleep(SECONDS.toMillis(1));
         List<EurekaClient> eurekaClients = config.getEurekaClients();
         assertEquals(2, eurekaClients.size());
     }

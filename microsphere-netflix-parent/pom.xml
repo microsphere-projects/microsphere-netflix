@@ -22,6 +22,7 @@
         <microsphere-spring-cloud.version>0.2.25</microsphere-spring-cloud.version>
         <microsphere-bom.version>0.3.9</microsphere-bom.version>
         <jakartaee.version>11.0.0</jakartaee.version>
+        <guice.version>7.0.0</guice.version>
         <jersey.version>1.19.4</jersey.version>
     </properties>
 
@@ -53,6 +54,13 @@
                 <version>${microsphere-bom.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+
+            <!-- Google Guice IoC Framework -->
+            <dependency>
+                <groupId>com.google.inject</groupId>
+                <artifactId>guice</artifactId>
+                <version>${guice.version}</version>
             </dependency>
 
             <!-- Jersey -->

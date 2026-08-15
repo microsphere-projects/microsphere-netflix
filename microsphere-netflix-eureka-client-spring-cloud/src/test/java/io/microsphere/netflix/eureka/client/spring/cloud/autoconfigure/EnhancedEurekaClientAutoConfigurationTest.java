@@ -19,21 +19,17 @@ package io.microsphere.netflix.eureka.client.spring.cloud.autoconfigure;
 import com.netflix.appinfo.HealthCheckHandler;
 import com.netflix.discovery.EurekaEventListener;
 import com.netflix.discovery.PreRegistrationHandler;
-import io.microsphere.spring.cloud.client.service.registry.autoconfigure.ServiceRegistryAutoConfiguration;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.cloud.client.serviceregistry.AutoServiceRegistrationAutoConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.client.serviceregistry.Registration;
 import org.springframework.context.annotation.Bean;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static java.lang.Thread.sleep;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -42,27 +38,20 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * @author <a href="mailto:mercyblitz@gmail.com">Mercy</a>
  * @since 1.0.0
  */
-@ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = {
-        AutoServiceRegistrationAutoConfiguration.class,
-        EnhancedEurekaClientAutoConfigurationTest.class,
-        EnhancedEurekaClientAutoConfigurationTest.Config.class,
-        ServiceRegistryAutoConfiguration.class,
-
-})
-@TestPropertySource(
+@SpringBootTest(
+        classes = {
+                EnhancedEurekaClientAutoConfigurationTest.class,
+                EnhancedEurekaClientAutoConfigurationTest.Config.class
+        },
         properties = {
                 "spring.application.name=test-eureka",
-                "server.port=12345",
-                "eureka.client.serviceUrl.defaultZone=http://127.0.0.1:12345/eureka",
+                "eureka.client.serviceUrl.defaultZone=http://127.0.0.1:8761/eureka",
                 "microsphere.spring.cloud.multiple-registration.enabled=true",
                 "microsphere.spring.cloud.default-registration.type=org.springframework.cloud.netflix.eureka.serviceregistry.EurekaRegistration",
                 "microsphere.spring.cloud.default-service-registry.type=org.springframework.cloud.netflix.eureka.serviceregistry.EurekaServiceRegistry",
-
         }
 )
 @EnableAutoConfiguration
-//@EnableEurekaServer
 public class EnhancedEurekaClientAutoConfigurationTest {
 
     private static final AtomicBoolean preRegistered = new AtomicBoolean(false);
@@ -94,7 +83,7 @@ public class EnhancedEurekaClientAutoConfigurationTest {
     @Test
     public void test() throws Throwable {
         registration.getMetadata().put("key", "value");
-        Thread.sleep(TimeUnit.SECONDS.toMillis(1));
+        sleep(TimeUnit.SECONDS.toMillis(1));
         assertTrue(preRegistered.get());
     }
 }
