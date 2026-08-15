@@ -17,15 +17,12 @@
 package io.microsphere.netflix.eureka.spring.cloud.tomcat.autoconfigure;
 
 import io.microsphere.logging.Logger;
-import io.microsphere.logging.LoggerFactory;
 import io.microsphere.netflix.eureka.spring.cloud.tomcat.servlet.listener.EurekaServerListener;
 import io.microsphere.netflix.eureka.spring.cloud.tomcat.servlet.listener.ReplicatedInstanceListener;
-import jakarta.annotation.PreDestroy;
 import jakarta.servlet.Servlet;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletContextAttributeEvent;
 import jakarta.servlet.ServletContextAttributeListener;
-import jakarta.servlet.ServletException;
 import org.apache.catalina.Context;
 import org.apache.catalina.Host;
 import org.apache.catalina.connector.Connector;
@@ -38,6 +35,7 @@ import org.apache.catalina.tribes.tipis.ReplicatedMap;
 import org.apache.tomcat.util.digester.Digester;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.BeanNameAware;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
@@ -69,6 +67,9 @@ import java.util.List;
 import java.util.Map;
 
 import static io.microsphere.logging.LoggerFactory.getLogger;
+import static io.microsphere.netflix.eureka.spring.cloud.constants.EurekaServerConstants.REPLICATION_TIMEOUT_PLACEHOLDER;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.springframework.util.StreamUtils.copyToString;
 
 /**
  * Eureka Server Tomcat {@link Configuration @Configuration}
@@ -91,15 +92,14 @@ import static io.microsphere.logging.LoggerFactory.getLogger;
 @Import(value = {EurekaServerListener.class})
 @AutoConfigureAfter(ServletWebServerFactoryAutoConfiguration.class)
 public class EurekaServerEmbeddedTomcatAutoConfiguration implements EmbeddedValueResolverAware, BeanClassLoaderAware,
-        BeanNameAware,
-        AbstractReplicatedMap.MapOwner {
+        BeanNameAware, DisposableBean, AbstractReplicatedMap.MapOwner {
 
     private static final Logger logger = getLogger(EurekaServerEmbeddedTomcatAutoConfiguration.class);
 
     @Value("classpath:/META-INF/conf/cluster.xml")
     private Resource resource;
 
-    @Value("${microsphere.tomcat.replication.timeout:15000}")
+    @Value(REPLICATION_TIMEOUT_PLACEHOLDER)
     private int replicationTimeout;
 
     private StringValueResolver resolver;
@@ -128,13 +128,12 @@ public class EurekaServerEmbeddedTomcatAutoConfiguration implements EmbeddedValu
         };
     }
 
-    @PreDestroy
+    @Override
     public void destroy() {
         if (replicatedMap != null) {
             replicatedMap.breakdown();
         }
     }
-
 
     private void initEmbeddedTomcat(Context context) {
         Host host = (Host) context.getParent();
@@ -185,7 +184,7 @@ public class EurekaServerEmbeddedTomcatAutoConfiguration implements EmbeddedValu
 
     private void parseCluster(SimpleTcpCluster cluster) throws Throwable {
         try (InputStream inputStream = resource.getInputStream()) {
-            String xmlContent = StreamUtils.copyToString(inputStream, StandardCharsets.UTF_8);
+            String xmlContent = copyToString(inputStream, UTF_8);
             Digester digester = createStartDigester();
             String resolvedXmlContent = resolver.resolveStringValue(xmlContent);
             InputSource inputSource = new InputSource(resource.getURI().toURL().toString());
@@ -246,7 +245,7 @@ public class EurekaServerEmbeddedTomcatAutoConfiguration implements EmbeddedValu
     private class Listener implements ServletContextInitializer, ServletContextAttributeListener {
 
         @Override
-        public void onStartup(ServletContext servletContext) throws ServletException {
+        public void onStartup(ServletContext servletContext) {
             servletContext.addListener(replicatedInstanceListener);
             servletContext.addListener(this);
         }

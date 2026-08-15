@@ -14,30 +14,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.microsphere.netflix.eureka.client.spring.cloud.constants;
 
-import com.netflix.discovery.EurekaClient;
-import org.springframework.cloud.netflix.eureka.CloudEurekaClient;
+package io.microsphere.netflix.eureka.spring.cloud.tomcat.constants;
+
+
+import io.microsphere.netflix.eureka.spring.cloud.constants.EurekaServerConstants;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import static io.microsphere.netflix.eureka.spring.cloud.constants.EurekaServerConstants.DEFAULT_REPLICATION_TIMEOUT_PROPERTY_VALUE;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
- * The constants for {@link EurekaClient}
+ * {@link EurekaServerConstants} Test
  *
  * @author <a href="mailto:mercyblitz@gmail.com">Mercy</a>
+ * @see EurekaServerConstants
  * @since 1.0.0
  */
-public interface EurekaClientConstants {
+class EurekaServerConstantsTest {
 
-    /**
-     * The class name of {@link EurekaClient}
-     *
-     * @see EurekaClient
-     */
-    String EUREKA_CLIENT_CLASS_NAME = "com.netflix.discovery.EurekaClient";
+    @BeforeEach
+    void setUp() {
+    }
 
-    /**
-     * The class name of {@link CloudEurekaClient}
-     *
-     * @see CloudEurekaClient
-     */
-    String CLOUD_EUREKA_CLIENT_CLASS_NAME = "org.springframework.cloud.netflix.eureka.CloudEurekaClient";
+    @Test
+    void testConstants() {
+        assertEquals("15000", DEFAULT_REPLICATION_TIMEOUT_PROPERTY_VALUE);
+    }
 }

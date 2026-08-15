@@ -50,9 +50,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static io.microsphere.netflix.eureka.client.constants.PropertyConstants.EUREKA_CLIENT_MULTIPLE_PROPERTY_NAME;
 import static io.microsphere.netflix.eureka.client.spring.cloud.autoconfigure.MultipleEurekaClientAutoConfiguration.EurekaClientMethodInterceptor.GET_APPLICATIONS_METHOD_NAME;
 import static io.microsphere.netflix.eureka.client.spring.cloud.autoconfigure.MultipleEurekaClientAutoConfiguration.EurekaClientMethodInterceptor.GET_INSTANCES_BY_VIP_ADDRESS_METHOD_NAME;
-import static io.microsphere.netflix.eureka.client.spring.cloud.constants.EurekaClientConstants.EUREKA_CLIENT_MULTIPLE_PROPERTY_NAME;
 import static org.springframework.aop.support.AopUtils.isAopProxy;
 import static org.springframework.beans.factory.config.BeanDefinition.ROLE_INFRASTRUCTURE;
 import static org.springframework.cloud.netflix.eureka.EurekaClientConfigBean.DEFAULT_ZONE;

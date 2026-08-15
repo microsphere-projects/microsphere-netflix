@@ -41,7 +41,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
         properties = {
                 "spring.application.name=test-eureka",
                 "eureka.client.serviceUrl.defaultZone=http://127.0.0.1:8761/eureka,http://127.0.0.1:8761/eureka",
-                "microsphere.spring.cloud.eureka.client.multiple=true"
+                "microsphere.eureka.client.multiple=true"
         }
 )
 @EnableAutoConfiguration

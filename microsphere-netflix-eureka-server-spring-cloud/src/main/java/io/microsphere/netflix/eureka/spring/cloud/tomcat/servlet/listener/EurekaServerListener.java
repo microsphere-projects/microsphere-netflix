@@ -24,7 +24,6 @@ import com.netflix.eureka.registry.PeerAwareInstanceRegistry;
 import com.netflix.eureka.registry.PeerAwareInstanceRegistryImpl;
 import com.netflix.eureka.resources.ServerCodecs;
 import io.microsphere.logging.Logger;
-import io.microsphere.logging.LoggerFactory;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletContextEvent;
 import jakarta.servlet.ServletContextListener;
@@ -45,6 +44,8 @@ import static com.netflix.eureka.registry.PeerAwareInstanceRegistryImpl.Action.C
 import static io.microsphere.logging.LoggerFactory.getLogger;
 import static io.microsphere.netflix.eureka.spring.cloud.tomcat.servlet.listener.ReplicatedInstanceListener.ACTION_METADATA_KEY;
 import static io.microsphere.netflix.eureka.spring.cloud.tomcat.servlet.listener.ReplicatedInstanceListener.REPLICATION_INSTANCE_NAME_PREFIX;
+import static java.lang.Thread.sleep;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.springframework.web.context.request.RequestContextHolder.getRequestAttributes;
 
 /**
@@ -77,8 +78,7 @@ public class EurekaServerListener implements ServletContextListener {
     private long deregisterDelay;
 
     @Autowired
-    public void init(EurekaServerContext eurekaServerContext,
-                     EurekaInstanceConfig eurekaInstanceConfig) {
+    public void init(EurekaServerContext eurekaServerContext, EurekaInstanceConfig eurekaInstanceConfig) {
         this.eurekaServerContext = eurekaServerContext;
         this.eurekaInstanceConfig = eurekaInstanceConfig;
         initCodecWrapper(eurekaServerContext);
@@ -140,7 +140,7 @@ public class EurekaServerListener implements ServletContextListener {
         try {
             for (int i = 0; i < deregisterDelay; i++) {
                 doReplicateInstance(instance, Cancel);
-                Thread.sleep(1000L);
+                sleep(SECONDS.toMillis(1));
             }
             logger.info("The current instance[appName : {} , id : {}] was deregistered before {}s!", appName, id, deregisterDelay);
         } catch (Throwable e) {
