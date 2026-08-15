@@ -44,6 +44,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import static io.microsphere.logging.LoggerFactory.getLogger;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 /**
  * Replicated Instance Listener implements
@@ -162,7 +163,7 @@ public class ReplicatedInstanceListener implements ServletContextListener, Servl
         CustomizableThreadFactory threadFactory = new CustomizableThreadFactory("Eureka-Replication-Instance-Messages-Thread-");
 
         ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(size, size,
-                0, TimeUnit.MILLISECONDS,
+                0, MILLISECONDS,
                 blockingQueue,
                 threadFactory,
                 new ThreadPoolExecutor.DiscardOldestPolicy()

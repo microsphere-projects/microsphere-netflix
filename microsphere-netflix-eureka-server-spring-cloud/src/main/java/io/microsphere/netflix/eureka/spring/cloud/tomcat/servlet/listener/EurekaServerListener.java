@@ -42,6 +42,7 @@ import java.util.Map;
 
 import static com.netflix.eureka.registry.PeerAwareInstanceRegistryImpl.Action.Cancel;
 import static io.microsphere.logging.LoggerFactory.getLogger;
+import static io.microsphere.netflix.eureka.server.constants.PropertyConstants.EUREKA_SERVER_DEREGISTRATION_DELAY_PLACEHOLDER;
 import static io.microsphere.netflix.eureka.spring.cloud.tomcat.servlet.listener.ReplicatedInstanceListener.ACTION_METADATA_KEY;
 import static io.microsphere.netflix.eureka.spring.cloud.tomcat.servlet.listener.ReplicatedInstanceListener.REPLICATION_INSTANCE_NAME_PREFIX;
 import static java.lang.Thread.sleep;
@@ -74,8 +75,8 @@ public class EurekaServerListener implements ServletContextListener {
 
     private volatile boolean deregistered = false;
 
-    @Value(("${microsphere.eureka.instance.deregister.delay:3}"))
-    private long deregisterDelay;
+    @Value(EUREKA_SERVER_DEREGISTRATION_DELAY_PLACEHOLDER)
+    private long deregistionDelay;
 
     @Autowired
     public void init(EurekaServerContext eurekaServerContext, EurekaInstanceConfig eurekaInstanceConfig) {
@@ -138,11 +139,11 @@ public class EurekaServerListener implements ServletContextListener {
             return;
         }
         try {
-            for (int i = 0; i < deregisterDelay; i++) {
+            for (int i = 0; i < deregistionDelay; i++) {
                 doReplicateInstance(instance, Cancel);
                 sleep(SECONDS.toMillis(1));
             }
-            logger.info("The current instance[appName : {} , id : {}] was deregistered before {}s!", appName, id, deregisterDelay);
+            logger.info("The current instance[appName : {} , id : {}] was deregistered before {}s!", appName, id, deregistionDelay);
         } catch (Throwable e) {
             logger.error(e.getMessage(), e);
         }

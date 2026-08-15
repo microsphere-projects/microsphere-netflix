@@ -53,21 +53,19 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.io.Resource;
 import org.springframework.util.ObjectUtils;
-import org.springframework.util.StreamUtils;
 import org.springframework.util.StringValueResolver;
 import org.xml.sax.InputSource;
 
 import java.io.InputStream;
 import java.io.Serializable;
 import java.io.StringReader;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import static io.microsphere.logging.LoggerFactory.getLogger;
-import static io.microsphere.netflix.eureka.spring.cloud.constants.EurekaServerConstants.REPLICATION_TIMEOUT_PLACEHOLDER;
+import static io.microsphere.netflix.eureka.server.constants.PropertyConstants.EUREKA_SERVER_REPLICATION_TIMEOUT_PLACEHOLDER;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.springframework.util.StreamUtils.copyToString;
 
@@ -99,7 +97,7 @@ public class EurekaServerEmbeddedTomcatAutoConfiguration implements EmbeddedValu
     @Value("classpath:/META-INF/conf/cluster.xml")
     private Resource resource;
 
-    @Value(REPLICATION_TIMEOUT_PLACEHOLDER)
+    @Value(EUREKA_SERVER_REPLICATION_TIMEOUT_PLACEHOLDER)
     private int replicationTimeout;
 
     private StringValueResolver resolver;

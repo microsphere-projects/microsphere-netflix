@@ -25,6 +25,9 @@ import java.lang.reflect.Field;
 
 import static io.microsphere.annotation.ConfigurationProperty.APPLICATION_SOURCE;
 import static io.microsphere.netflix.eureka.commons.constants.PropertyConstants.DEFAULT_EUREKA_ENABLED_PROPERTY_VALUE;
+import static io.microsphere.netflix.eureka.server.constants.PropertyConstants.DEFAULT_EUREKA_SERVER_DEREGISTRATION_DELAY_PROPERTY_VALUE;
+import static io.microsphere.netflix.eureka.server.constants.PropertyConstants.EUREKA_SERVER_DEREGISTRATION_DELAY_PLACEHOLDER;
+import static io.microsphere.netflix.eureka.server.constants.PropertyConstants.EUREKA_SERVER_DEREGISTRATION_DELAY_PROPERTY_NAME;
 import static io.microsphere.netflix.eureka.server.constants.PropertyConstants.EUREKA_SERVER_ENABLED_PROPERTY_NAME;
 import static io.microsphere.netflix.eureka.server.constants.PropertyConstants.EUREKA_SERVER_PROPERTY_NAME_PREFIX;
 import static io.microsphere.reflect.FieldUtils.findField;
@@ -45,11 +48,20 @@ class PropertyConstantsTest {
     void testConstants() {
         assertEquals("microsphere.eureka.server.", EUREKA_SERVER_PROPERTY_NAME_PREFIX);
         assertEquals("microsphere.eureka.server.enabled", EUREKA_SERVER_ENABLED_PROPERTY_NAME);
+        assertEquals("3000", DEFAULT_EUREKA_SERVER_DEREGISTRATION_DELAY_PROPERTY_VALUE);
+        assertEquals("microsphere.eureka.server.deregistration.delay", EUREKA_SERVER_DEREGISTRATION_DELAY_PROPERTY_NAME);
+        assertEquals("${microsphere.eureka.server.deregistration.delay:3000}", EUREKA_SERVER_DEREGISTRATION_DELAY_PLACEHOLDER);
 
         Field field = findField(PropertyConstants.class, "EUREKA_SERVER_ENABLED_PROPERTY_NAME");
         ConfigurationProperty annotation = field.getAnnotation(ConfigurationProperty.class);
         assertEquals(boolean.class, annotation.type());
         assertEquals(DEFAULT_EUREKA_ENABLED_PROPERTY_VALUE, annotation.defaultValue());
+        assertArrayEquals(ofArray(APPLICATION_SOURCE), annotation.source());
+
+        field = findField(PropertyConstants.class, "EUREKA_SERVER_DEREGISTRATION_DELAY_PROPERTY_NAME");
+        annotation = field.getAnnotation(ConfigurationProperty.class);
+        assertEquals(long.class, annotation.type());
+        assertEquals(DEFAULT_EUREKA_SERVER_DEREGISTRATION_DELAY_PROPERTY_VALUE, annotation.defaultValue());
         assertArrayEquals(ofArray(APPLICATION_SOURCE), annotation.source());
     }
 }

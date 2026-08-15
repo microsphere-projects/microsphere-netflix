@@ -32,7 +32,7 @@ import static io.microsphere.netflix.eureka.commons.constants.PropertyConstants.
 public interface PropertyConstants {
 
     /**
-     * The property prefix of Netflix Eureka Server : "microsphere.eureka.server"
+     * The property prefix of Netflix Eureka Server : "microsphere.eureka.server."
      */
     String EUREKA_SERVER_PROPERTY_NAME_PREFIX = EUREKA_PROPERTY_NAME_PREFIX + "server.";
 
@@ -45,5 +45,62 @@ public interface PropertyConstants {
             source = APPLICATION_SOURCE
     )
     String EUREKA_SERVER_ENABLED_PROPERTY_NAME = EUREKA_SERVER_PROPERTY_NAME_PREFIX + ENABLED_PROPERTY_NAME;
+
+    /**
+     * The property prefix of Netflix Eureka Server Replication : "microsphere.eureka.server.replication."
+     */
+    String EUREKA_SERVER_REPLICATION_PROPERTY_NAME_PREFIX = EUREKA_SERVER_PROPERTY_NAME_PREFIX + "replication.";
+
+    /**
+     * The default property value of Netflix Eureka Server Replication Timeout(unit : milliseconds) : "15000"
+     */
+    String DEFAULT_REPLICATION_TIMEOUT_PROPERTY_VALUE = "15000";
+
+    /**
+     * The Configuration Property Name of Replication Timeout(unit : milliseconds) : "microsphere.eureka.server.replication.timeout"
+     */
+    @ConfigurationProperty(
+            type = long.class,
+            defaultValue = DEFAULT_REPLICATION_TIMEOUT_PROPERTY_VALUE
+    )
+    String EUREKA_SERVER_REPLICATION_TIMEOUT_PROPERTY_NAME = EUREKA_SERVER_REPLICATION_PROPERTY_NAME_PREFIX + "timeout";
+
+    /**
+     * The Placeholder of Replication Timeout : "${microsphere.eureka.server.replication.timeout:15000}"
+     */
+    String EUREKA_SERVER_REPLICATION_TIMEOUT_PLACEHOLDER = "${" + EUREKA_SERVER_REPLICATION_TIMEOUT_PROPERTY_NAME + ":" + DEFAULT_REPLICATION_TIMEOUT_PROPERTY_VALUE + "}";
+
+
+    /**
+     * The property name of Netflix Eureka Server Replication Threads : "microsphere.eureka.server.replication.threads"
+     */
+    String EUREKA_SERVER_REPLICATION_THREADS_PROPERTY_NAME = EUREKA_SERVER_REPLICATION_PROPERTY_NAME_PREFIX + "threads";
+
+    String CAPACITY_PARAM_NAME = "microsphere.eureka.replicated-instance.messages.capacity";
+
+
+    /**
+     * The default property value of Netflix Eureka Server Deregistration Delay(unit : milliseconds) : "3000"
+     */
+    String DEFAULT_EUREKA_SERVER_DEREGISTRATION_DELAY_PROPERTY_VALUE = "3000";
+
+    /**
+     * The property name of Netflix Eureka Server Deregistration Delay(unit : milliseconds) :
+     * "microsphere.eureka.server.deregistration.delay"
+     */
+    @ConfigurationProperty(
+            type = long.class,
+            defaultValue = DEFAULT_EUREKA_SERVER_DEREGISTRATION_DELAY_PROPERTY_VALUE,
+            source = APPLICATION_SOURCE
+    )
+    String EUREKA_SERVER_DEREGISTRATION_DELAY_PROPERTY_NAME = EUREKA_SERVER_PROPERTY_NAME_PREFIX + "deregistration.delay";
+
+    /**
+     * The property placeholder of Netflix Eureka Server Deregistration Delay(unit : milliseconds) :
+     * "${microsphere.eureka.server.deregistration.delay:3000}"
+     */
+    String EUREKA_SERVER_DEREGISTRATION_DELAY_PLACEHOLDER = "${" + EUREKA_SERVER_DEREGISTRATION_DELAY_PROPERTY_NAME + ":"
+            + DEFAULT_EUREKA_SERVER_DEREGISTRATION_DELAY_PROPERTY_VALUE + "}";
+
 
 }
