@@ -70,14 +70,45 @@ public interface PropertyConstants {
      */
     String EUREKA_SERVER_REPLICATION_TIMEOUT_PLACEHOLDER = "${" + EUREKA_SERVER_REPLICATION_TIMEOUT_PROPERTY_NAME + ":" + DEFAULT_REPLICATION_TIMEOUT_PROPERTY_VALUE + "}";
 
+    /**
+     * The default property value of Netflix Eureka Server Replication Threads : "1"
+     */
+    String DEFAULT_EUREKA_SERVER_REPLICATION_THREADS_PROPERTY_VALUE = "1";
 
     /**
      * The property name of Netflix Eureka Server Replication Threads : "microsphere.eureka.server.replication.threads"
      */
+    @ConfigurationProperty(
+            type = int.class,
+            defaultValue = DEFAULT_EUREKA_SERVER_REPLICATION_THREADS_PROPERTY_VALUE,
+            source = APPLICATION_SOURCE
+    )
     String EUREKA_SERVER_REPLICATION_THREADS_PROPERTY_NAME = EUREKA_SERVER_REPLICATION_PROPERTY_NAME_PREFIX + "threads";
 
-    String CAPACITY_PARAM_NAME = "microsphere.eureka.replicated-instance.messages.capacity";
+    /**
+     * The property placeholder of Netflix Eureka Server Replication Threads : "${microsphere.eureka.server.replication.threads:1}"
+     */
+    String EUREKA_SERVER_REPLICATION_THREADS_PLACEHOLDER = "${" + EUREKA_SERVER_REPLICATION_THREADS_PROPERTY_NAME + ":" + DEFAULT_EUREKA_SERVER_REPLICATION_THREADS_PROPERTY_VALUE + "}";
 
+    /**
+     * The default property value of Netflix Eureka Server Replication Queue Capacity : "100"
+     */
+    String DEFAULT_EUREKA_SERVER_REPLICATION_QUEUE_CAPACITY_PROPERTY_VALUE = "100";
+
+    /**
+     * The property name of Netflix Eureka Server Replication Queue Capacity : "microsphere.eureka.server.replication.queue.capacity"
+     */
+    @ConfigurationProperty(
+            type = int.class,
+            defaultValue = DEFAULT_EUREKA_SERVER_REPLICATION_QUEUE_CAPACITY_PROPERTY_VALUE,
+            source = APPLICATION_SOURCE
+    )
+    String EUREKA_SERVER_REPLICATION_QUEUE_CAPACITY_PROPERTY_NAME = EUREKA_SERVER_REPLICATION_PROPERTY_NAME_PREFIX + "queue.capacity";
+
+    /**
+     * The property placeholder of Netflix Eureka Server Replication Queue Capacity : "${microsphere.eureka.server.replication.queue.capacity:100}"
+     */
+    String EUREKA_SERVER_REPLICATION_QUEUE_CAPACITY_PLACEHOLDER = "${" + EUREKA_SERVER_REPLICATION_QUEUE_CAPACITY_PROPERTY_NAME + ":" + DEFAULT_EUREKA_SERVER_REPLICATION_QUEUE_CAPACITY_PROPERTY_VALUE + "}";
 
     /**
      * The default property value of Netflix Eureka Server Deregistration Delay(unit : milliseconds) : "3000"
@@ -101,6 +132,5 @@ public interface PropertyConstants {
      */
     String EUREKA_SERVER_DEREGISTRATION_DELAY_PLACEHOLDER = "${" + EUREKA_SERVER_DEREGISTRATION_DELAY_PROPERTY_NAME + ":"
             + DEFAULT_EUREKA_SERVER_DEREGISTRATION_DELAY_PROPERTY_VALUE + "}";
-
 
 }

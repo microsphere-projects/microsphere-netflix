@@ -17,12 +17,10 @@
 package io.microsphere.netflix.eureka.spring.cloud.tomcat.servlet;
 
 import io.microsphere.logging.Logger;
-import io.microsphere.logging.LoggerFactory;
 import io.microsphere.netflix.eureka.spring.cloud.tomcat.servlet.listener.EurekaServerListener;
 import io.microsphere.netflix.eureka.spring.cloud.tomcat.servlet.listener.ReplicatedInstanceListener;
 import jakarta.servlet.ServletContainerInitializer;
 import jakarta.servlet.ServletContext;
-import jakarta.servlet.ServletException;
 import org.apache.catalina.Cluster;
 import org.apache.catalina.Container;
 import org.apache.catalina.Context;
@@ -52,7 +50,7 @@ public class ReplicatedInstanceServletContainerInitializer implements ServletCon
     private static final Logger logger = getLogger(ReplicatedInstanceServletContainerInitializer.class);
 
     @Override
-    public void onStartup(Set<Class<?>> c, ServletContext servletContext) throws ServletException {
+    public void onStartup(Set<Class<?>> c, ServletContext servletContext) {
         Class<?> servletContextClass = servletContext.getClass();
         String className = servletContextClass.getName();
         if ("org.apache.catalina.core.ApplicationContextFacade".equals(className)) {
