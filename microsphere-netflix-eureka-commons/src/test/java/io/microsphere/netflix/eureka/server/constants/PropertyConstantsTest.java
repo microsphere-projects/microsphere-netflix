@@ -28,6 +28,8 @@ import static io.microsphere.netflix.eureka.commons.constants.PropertyConstants.
 import static io.microsphere.netflix.eureka.server.constants.PropertyConstants.DEFAULT_EUREKA_SERVER_DEREGISTRATION_DELAY_PROPERTY_VALUE;
 import static io.microsphere.netflix.eureka.server.constants.PropertyConstants.DEFAULT_EUREKA_SERVER_REPLICATION_QUEUE_CAPACITY_PROPERTY_VALUE;
 import static io.microsphere.netflix.eureka.server.constants.PropertyConstants.DEFAULT_EUREKA_SERVER_REPLICATION_THREADS_PROPERTY_VALUE;
+import static io.microsphere.netflix.eureka.server.constants.PropertyConstants.DEFAULT_EUREKA_SERVER_REPLICATION_THREAD_NAME_PREFIX_PROPERTY_VALUE;
+import static io.microsphere.netflix.eureka.server.constants.PropertyConstants.DEFAULT_REPLICATION_INSTANCE_NAME_PREFIX_PROPERTY_VALUE;
 import static io.microsphere.netflix.eureka.server.constants.PropertyConstants.DEFAULT_REPLICATION_TIMEOUT_PROPERTY_VALUE;
 import static io.microsphere.netflix.eureka.server.constants.PropertyConstants.EUREKA_SERVER_DEREGISTRATION_DELAY_PLACEHOLDER;
 import static io.microsphere.netflix.eureka.server.constants.PropertyConstants.EUREKA_SERVER_DEREGISTRATION_DELAY_PROPERTY_NAME;
@@ -38,8 +40,12 @@ import static io.microsphere.netflix.eureka.server.constants.PropertyConstants.E
 import static io.microsphere.netflix.eureka.server.constants.PropertyConstants.EUREKA_SERVER_REPLICATION_QUEUE_CAPACITY_PROPERTY_NAME;
 import static io.microsphere.netflix.eureka.server.constants.PropertyConstants.EUREKA_SERVER_REPLICATION_THREADS_PLACEHOLDER;
 import static io.microsphere.netflix.eureka.server.constants.PropertyConstants.EUREKA_SERVER_REPLICATION_THREADS_PROPERTY_NAME;
+import static io.microsphere.netflix.eureka.server.constants.PropertyConstants.EUREKA_SERVER_REPLICATION_THREAD_NAME_PREFIX_PLACEHOLDER;
+import static io.microsphere.netflix.eureka.server.constants.PropertyConstants.EUREKA_SERVER_REPLICATION_THREAD_NAME_PREFIX_PROPERTY_NAME;
 import static io.microsphere.netflix.eureka.server.constants.PropertyConstants.EUREKA_SERVER_REPLICATION_TIMEOUT_PLACEHOLDER;
 import static io.microsphere.netflix.eureka.server.constants.PropertyConstants.EUREKA_SERVER_REPLICATION_TIMEOUT_PROPERTY_NAME;
+import static io.microsphere.netflix.eureka.server.constants.PropertyConstants.REPLICATION_INSTANCE_NAME_PREFIX_PLACEHOLDER;
+import static io.microsphere.netflix.eureka.server.constants.PropertyConstants.REPLICATION_INSTANCE_NAME_PREFIX_PROPERTY_NAME;
 import static io.microsphere.reflect.FieldUtils.findField;
 import static io.microsphere.util.ArrayUtils.ofArray;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
@@ -63,12 +69,22 @@ class PropertyConstantsTest {
         assertEquals("15000", DEFAULT_REPLICATION_TIMEOUT_PROPERTY_VALUE);
         assertEquals("microsphere.eureka.server.replication.timeout", EUREKA_SERVER_REPLICATION_TIMEOUT_PROPERTY_NAME);
         assertEquals("${microsphere.eureka.server.replication.timeout:15000}", EUREKA_SERVER_REPLICATION_TIMEOUT_PLACEHOLDER);
+
         assertEquals("1", DEFAULT_EUREKA_SERVER_REPLICATION_THREADS_PROPERTY_VALUE);
         assertEquals("microsphere.eureka.server.replication.threads", EUREKA_SERVER_REPLICATION_THREADS_PROPERTY_NAME);
         assertEquals("${microsphere.eureka.server.replication.threads:1}", EUREKA_SERVER_REPLICATION_THREADS_PLACEHOLDER);
+
+        assertEquals("Eureka-Server-Replication-Thread-", DEFAULT_EUREKA_SERVER_REPLICATION_THREAD_NAME_PREFIX_PROPERTY_VALUE);
+        assertEquals("microsphere.eureka.server.replication.thread-name-prefix", EUREKA_SERVER_REPLICATION_THREAD_NAME_PREFIX_PROPERTY_NAME);
+        assertEquals("${microsphere.eureka.server.replication.thread-name-prefix:Eureka-Server-Replication-Thread-}", EUREKA_SERVER_REPLICATION_THREAD_NAME_PREFIX_PLACEHOLDER);
+
         assertEquals("100", DEFAULT_EUREKA_SERVER_REPLICATION_QUEUE_CAPACITY_PROPERTY_VALUE);
         assertEquals("microsphere.eureka.server.replication.queue.capacity", EUREKA_SERVER_REPLICATION_QUEUE_CAPACITY_PROPERTY_NAME);
         assertEquals("${microsphere.eureka.server.replication.queue.capacity:100}", EUREKA_SERVER_REPLICATION_QUEUE_CAPACITY_PLACEHOLDER);
+
+        assertEquals("ReplicatedInstance-", DEFAULT_REPLICATION_INSTANCE_NAME_PREFIX_PROPERTY_VALUE);
+        assertEquals("microsphere.eureka.server.replication.instance-name-prefix", REPLICATION_INSTANCE_NAME_PREFIX_PROPERTY_NAME);
+        assertEquals("${microsphere.eureka.server.replication.instance-name-prefix:ReplicatedInstance-}", REPLICATION_INSTANCE_NAME_PREFIX_PLACEHOLDER);
 
         assertEquals("3000", DEFAULT_EUREKA_SERVER_DEREGISTRATION_DELAY_PROPERTY_VALUE);
         assertEquals("microsphere.eureka.server.deregistration.delay", EUREKA_SERVER_DEREGISTRATION_DELAY_PROPERTY_NAME);

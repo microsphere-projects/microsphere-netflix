@@ -91,6 +91,45 @@ public interface PropertyConstants {
     String EUREKA_SERVER_REPLICATION_THREADS_PLACEHOLDER = "${" + EUREKA_SERVER_REPLICATION_THREADS_PROPERTY_NAME + ":" + DEFAULT_EUREKA_SERVER_REPLICATION_THREADS_PROPERTY_VALUE + "}";
 
     /**
+     * The default property value of Netflix Eureka Server Replication Thread Name Prefix : "Eureka-Server-Replication-Thread-"
+     */
+    String DEFAULT_EUREKA_SERVER_REPLICATION_THREAD_NAME_PREFIX_PROPERTY_VALUE = "Eureka-Server-Replication-Thread-";
+
+    /**
+     * The property name of Netflix Eureka Server Replication Thread Name Prefix : "microsphere.eureka.server.replication.thread-name-prefix"
+     */
+    @ConfigurationProperty(
+            defaultValue = DEFAULT_EUREKA_SERVER_REPLICATION_THREAD_NAME_PREFIX_PROPERTY_VALUE,
+            source = APPLICATION_SOURCE
+    )
+    String EUREKA_SERVER_REPLICATION_THREAD_NAME_PREFIX_PROPERTY_NAME = EUREKA_SERVER_REPLICATION_PROPERTY_NAME_PREFIX + "thread-name-prefix";
+
+    /**
+     * The property placeholder of Netflix Eureka Server Replication Thread Name Prefix : "${microsphere.eureka.server.replication.thread-name-prefix:Eureka-Server-Replication-Thread-}"
+     */
+    String EUREKA_SERVER_REPLICATION_THREAD_NAME_PREFIX_PLACEHOLDER = "${" + EUREKA_SERVER_REPLICATION_THREAD_NAME_PREFIX_PROPERTY_NAME
+            + ":" + DEFAULT_EUREKA_SERVER_REPLICATION_THREAD_NAME_PREFIX_PROPERTY_VALUE + "}";
+
+    /**
+     * The default property value of Netflix Eureka Server Replication Instance Name Prefix : "ReplicatedInstance-"
+     */
+    String DEFAULT_REPLICATION_INSTANCE_NAME_PREFIX_PROPERTY_VALUE = "ReplicatedInstance-";
+
+    /**
+     * The property name of Netflix Eureka Server Replication Instance Name Prefix : "microsphere.eureka.server.replication.instance-name-prefix"
+     */
+    @ConfigurationProperty(
+            defaultValue = DEFAULT_REPLICATION_INSTANCE_NAME_PREFIX_PROPERTY_VALUE,
+            source = APPLICATION_SOURCE
+    )
+    String REPLICATION_INSTANCE_NAME_PREFIX_PROPERTY_NAME = EUREKA_SERVER_REPLICATION_PROPERTY_NAME_PREFIX + "instance-name-prefix";
+
+    /**
+     * The property placeholder of Netflix Eureka Server Replication Instance Name Prefix : "${microsphere.eureka.server.replication.instance-name-prefix:ReplicatedInstance-}"
+     */
+    String REPLICATION_INSTANCE_NAME_PREFIX_PLACEHOLDER = "${" + REPLICATION_INSTANCE_NAME_PREFIX_PROPERTY_NAME + ":" + DEFAULT_REPLICATION_INSTANCE_NAME_PREFIX_PROPERTY_VALUE + "}";
+
+    /**
      * The default property value of Netflix Eureka Server Replication Queue Capacity : "100"
      */
     String DEFAULT_EUREKA_SERVER_REPLICATION_QUEUE_CAPACITY_PROPERTY_VALUE = "100";
