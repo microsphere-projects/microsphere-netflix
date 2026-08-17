@@ -30,6 +30,7 @@ import static io.microsphere.netflix.eureka.server.constants.PropertyConstants.D
 import static io.microsphere.netflix.eureka.server.constants.PropertyConstants.DEFAULT_EUREKA_SERVER_REPLICATION_THREADS_PROPERTY_VALUE;
 import static io.microsphere.netflix.eureka.server.constants.PropertyConstants.DEFAULT_EUREKA_SERVER_REPLICATION_THREAD_NAME_PREFIX_PROPERTY_VALUE;
 import static io.microsphere.netflix.eureka.server.constants.PropertyConstants.DEFAULT_REPLICATION_INSTANCE_NAME_PREFIX_PROPERTY_VALUE;
+import static io.microsphere.netflix.eureka.server.constants.PropertyConstants.DEFAULT_REPLICATION_METADATA_ACTION_KEY_PROPERTY_VALUE;
 import static io.microsphere.netflix.eureka.server.constants.PropertyConstants.DEFAULT_REPLICATION_TIMEOUT_PROPERTY_VALUE;
 import static io.microsphere.netflix.eureka.server.constants.PropertyConstants.EUREKA_SERVER_DEREGISTRATION_DELAY_PLACEHOLDER;
 import static io.microsphere.netflix.eureka.server.constants.PropertyConstants.EUREKA_SERVER_DEREGISTRATION_DELAY_PROPERTY_NAME;
@@ -46,6 +47,8 @@ import static io.microsphere.netflix.eureka.server.constants.PropertyConstants.E
 import static io.microsphere.netflix.eureka.server.constants.PropertyConstants.EUREKA_SERVER_REPLICATION_TIMEOUT_PROPERTY_NAME;
 import static io.microsphere.netflix.eureka.server.constants.PropertyConstants.REPLICATION_INSTANCE_NAME_PREFIX_PLACEHOLDER;
 import static io.microsphere.netflix.eureka.server.constants.PropertyConstants.REPLICATION_INSTANCE_NAME_PREFIX_PROPERTY_NAME;
+import static io.microsphere.netflix.eureka.server.constants.PropertyConstants.REPLICATION_METADATA_ACTION_KEY_PLACEHOLDER;
+import static io.microsphere.netflix.eureka.server.constants.PropertyConstants.REPLICATION_METADATA_ACTION_KEY_PROPERTY_NAME;
 import static io.microsphere.reflect.FieldUtils.findField;
 import static io.microsphere.util.ArrayUtils.ofArray;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
@@ -65,6 +68,10 @@ class PropertyConstantsTest {
         assertEquals("microsphere.eureka.server.", EUREKA_SERVER_PROPERTY_NAME_PREFIX);
         assertEquals("microsphere.eureka.server.enabled", EUREKA_SERVER_ENABLED_PROPERTY_NAME);
         assertEquals("microsphere.eureka.server.replication.", EUREKA_SERVER_REPLICATION_PROPERTY_NAME_PREFIX);
+
+        assertEquals("_action_", DEFAULT_REPLICATION_METADATA_ACTION_KEY_PROPERTY_VALUE);
+        assertEquals("microsphere.eureka.server.replication.metadata.action-key", REPLICATION_METADATA_ACTION_KEY_PROPERTY_NAME);
+        assertEquals("${microsphere.eureka.server.replication.metadata.action-key:_action_}", REPLICATION_METADATA_ACTION_KEY_PLACEHOLDER);
 
         assertEquals("15000", DEFAULT_REPLICATION_TIMEOUT_PROPERTY_VALUE);
         assertEquals("microsphere.eureka.server.replication.timeout", EUREKA_SERVER_REPLICATION_TIMEOUT_PROPERTY_NAME);

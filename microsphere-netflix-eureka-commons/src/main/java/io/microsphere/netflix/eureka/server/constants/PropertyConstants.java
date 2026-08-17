@@ -52,6 +52,25 @@ public interface PropertyConstants {
     String EUREKA_SERVER_REPLICATION_PROPERTY_NAME_PREFIX = EUREKA_SERVER_PROPERTY_NAME_PREFIX + "replication.";
 
     /**
+     * The default property value of Replication Metadata for Action Key : "_action_"
+     */
+    String DEFAULT_REPLICATION_METADATA_ACTION_KEY_PROPERTY_VALUE = "_action_";
+
+    /**
+     * The Configuration Property Name of Replication Metadata for Action Key : "microsphere.eureka.server.replication.metadata.action-key"
+     */
+    @ConfigurationProperty(
+            defaultValue = DEFAULT_REPLICATION_METADATA_ACTION_KEY_PROPERTY_VALUE,
+            source = APPLICATION_SOURCE
+    )
+    String REPLICATION_METADATA_ACTION_KEY_PROPERTY_NAME = EUREKA_SERVER_REPLICATION_PROPERTY_NAME_PREFIX + "metadata.action-key";
+
+    /**
+     * The Placeholder of Replication Metadata for Action Key : "${microsphere.eureka.server.replication.metadata.action-key:_action_}"
+     */
+    String REPLICATION_METADATA_ACTION_KEY_PLACEHOLDER = "${" + REPLICATION_METADATA_ACTION_KEY_PROPERTY_NAME + ":" + DEFAULT_REPLICATION_METADATA_ACTION_KEY_PROPERTY_VALUE + "}";
+
+    /**
      * The default property value of Netflix Eureka Server Replication Timeout(unit : milliseconds) : "15000"
      */
     String DEFAULT_REPLICATION_TIMEOUT_PROPERTY_VALUE = "15000";
