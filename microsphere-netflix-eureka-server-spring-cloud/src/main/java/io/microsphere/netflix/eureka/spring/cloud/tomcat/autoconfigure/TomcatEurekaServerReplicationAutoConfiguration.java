@@ -16,6 +16,7 @@
  */
 package io.microsphere.netflix.eureka.spring.cloud.tomcat.autoconfigure;
 
+import com.netflix.eureka.EurekaServerContext;
 import io.microsphere.logging.Logger;
 import io.microsphere.netflix.eureka.spring.cloud.EurekaServerProperties;
 import io.microsphere.netflix.eureka.spring.cloud.tomcat.servlet.listener.EurekaServerListener;
@@ -23,10 +24,14 @@ import io.microsphere.netflix.eureka.spring.cloud.tomcat.servlet.listener.Replic
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletContextAttributeEvent;
 import jakarta.servlet.ServletContextAttributeListener;
+import jakarta.servlet.ServletContextEvent;
+import jakarta.servlet.ServletContextListener;
+import org.apache.catalina.Cluster;
 import org.apache.catalina.Context;
 import org.apache.catalina.Host;
 import org.apache.catalina.connector.Connector;
 import org.apache.catalina.core.StandardContext;
+import org.apache.catalina.ha.CatalinaCluster;
 import org.apache.catalina.ha.ClusterRuleSet;
 import org.apache.catalina.ha.tcp.SimpleTcpCluster;
 import org.apache.catalina.tribes.Channel;
@@ -63,7 +68,6 @@ import java.util.List;
 import java.util.Map;
 
 import static io.microsphere.logging.LoggerFactory.getLogger;
-import static io.microsphere.netflix.eureka.spring.cloud.tomcat.servlet.ReplicatedInstanceServletContainerInitializer.initReplicatedInstanceListener;
 import static java.lang.Thread.currentThread;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication.Type.SERVLET;
@@ -74,8 +78,11 @@ import static org.springframework.util.StreamUtils.copyToString;
  * The Auto-{@link Configuration @Configuration} class for Netflix Eureka Server Replication on the Embedded Tomcat
  *
  * @author <a href="mailto:mercyblitz@gmail.com">Mercy</a>
+ * @see EurekaServerListener
+ * @see ReplicatedInstanceListener
  * @see org.springframework.boot.autoconfigure.web.servlet.ServletWebServerFactoryAutoConfiguration
  * @see org.springframework.boot.tomcat.autoconfigure.servlet.TomcatServletWebServerAutoConfiguration
+ * @see org.springframework.cloud.netflix.eureka.server.EurekaServerAutoConfiguration
  * @see TomcatServletWebServerFactory
  * @see org.apache.catalina.startup.Tomcat
  * @see org.apache.catalina.ha.tcp.SimpleTcpCluster
@@ -93,6 +100,7 @@ import static org.springframework.util.StreamUtils.copyToString;
         name = {
                 "org.springframework.boot.autoconfigure.web.servlet.ServletWebServerFactoryAutoConfiguration",   // Spring Boot [2.0, 4.0)
                 "org.springframework.boot.tomcat.autoconfigure.servlet.TomcatServletWebServerAutoConfiguration", // Spring Boot [4.0,)
+                "org.springframework.cloud.netflix.eureka.server.EurekaServerAutoConfiguration"                  // Spring Cloud Netflix Eureka Server API
         }
 )
 @Import(value = {
@@ -103,13 +111,15 @@ import static org.springframework.util.StreamUtils.copyToString;
                 EurekaServerProperties.class
         }
 )
-public class EurekaServerReplicationEmbeddedTomcatAutoConfiguration implements EmbeddedValueResolverAware, BeanClassLoaderAware,
+public class TomcatEurekaServerReplicationAutoConfiguration implements EmbeddedValueResolverAware, BeanClassLoaderAware,
         BeanNameAware, DisposableBean, AbstractReplicatedMap.MapOwner {
 
-    private static final Logger logger = getLogger(EurekaServerReplicationEmbeddedTomcatAutoConfiguration.class);
+    private static final Logger logger = getLogger(TomcatEurekaServerReplicationAutoConfiguration.class);
 
     @Value("classpath:/META-INF/conf/cluster.xml")
     private Resource resource;
+
+    private final EurekaServerContext eurekaServerContext;
 
     private final EurekaServerProperties eurekaServerProperties;
 
@@ -117,13 +127,17 @@ public class EurekaServerReplicationEmbeddedTomcatAutoConfiguration implements E
 
     private ClassLoader classLoader;
 
+    private SimpleTcpCluster cluster;
+
     private ReplicatedMap<String, Object> replicatedMap;
 
     private ReplicatedInstanceListener replicatedInstanceListener;
 
     private String beanName;
 
-    public EurekaServerReplicationEmbeddedTomcatAutoConfiguration(EurekaServerProperties eurekaServerProperties) {
+    public TomcatEurekaServerReplicationAutoConfiguration(EurekaServerContext eurekaServerContext,
+                                                          EurekaServerProperties eurekaServerProperties) {
+        this.eurekaServerContext = eurekaServerContext;
         this.eurekaServerProperties = eurekaServerProperties;
     }
 
@@ -144,9 +158,16 @@ public class EurekaServerReplicationEmbeddedTomcatAutoConfiguration implements E
     }
 
     @Override
-    public void destroy() {
+    public void destroy() throws Exception {
+        stopReplication();
+    }
+
+    private void stopReplication() throws Exception {
         if (this.replicatedMap != null) {
             this.replicatedMap.breakdown();
+        }
+        if (this.cluster != null) {
+            this.cluster.stop();
         }
     }
 
@@ -155,10 +176,23 @@ public class EurekaServerReplicationEmbeddedTomcatAutoConfiguration implements E
         try {
             SimpleTcpCluster cluster = buildCluster();
             host.setCluster(cluster);
-            this.replicatedInstanceListener = initReplicatedInstanceListener(cluster, this.eurekaServerProperties);
+            this.cluster = cluster;
+            initReplicatedInstanceListener(cluster);
             initReplicatedMap(context, cluster);
         } catch (Throwable e) {
             logger.error(e.getMessage(), e);
+        }
+    }
+
+    private void initReplicatedInstanceListener(Cluster cluster) {
+        if (cluster instanceof CatalinaCluster) {
+            CatalinaCluster catalinaCluster = (CatalinaCluster) cluster;
+            Channel channel = catalinaCluster.getChannel();
+            ReplicatedInstanceListener listener = new ReplicatedInstanceListener(this.eurekaServerContext, this.eurekaServerProperties);
+            channel.addChannelListener(listener);
+
+            this.replicatedInstanceListener = listener;
+            logger.info("The ReplicatedInstanceListener was added");
         }
     }
 
@@ -250,12 +284,25 @@ public class EurekaServerReplicationEmbeddedTomcatAutoConfiguration implements E
         // DO NOTHING
     }
 
-    private class Listener implements ServletContextInitializer, ServletContextAttributeListener {
+    private class Listener implements ServletContextInitializer, ServletContextListener, ServletContextAttributeListener {
 
         @Override
         public void onStartup(ServletContext servletContext) {
             servletContext.addListener(replicatedInstanceListener);
             servletContext.addListener(this);
+        }
+
+        @Override
+        public void contextInitialized(ServletContextEvent sce) {
+        }
+
+        @Override
+        public void contextDestroyed(ServletContextEvent sce) {
+            try {
+                stopReplication();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         }
 
         @Override

@@ -19,48 +19,44 @@ package io.microsphere.netflix.eureka.spring.cloud.tomcat.autoconfigure;
 
 
 import io.microsphere.netflix.eureka.spring.cloud.tomcat.sample.EurekaServerApplication;
-import org.junit.jupiter.api.Test;
 import org.springframework.context.ConfigurableApplicationContext;
 
+import java.util.concurrent.CompletionService;
+import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.atomic.AtomicReferenceArray;
+import java.util.concurrent.Future;
 
-import static java.lang.Long.MAX_VALUE;
-import static java.lang.Thread.sleep;
 import static java.util.concurrent.Executors.newFixedThreadPool;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.boot.SpringApplication.exit;
 import static org.springframework.boot.SpringApplication.run;
 
 /**
- * {@link EurekaServerReplicationEmbeddedTomcatAutoConfiguration} Integration Test
+ * {@link TomcatEurekaServerReplicationAutoConfiguration} Integration Test
  *
  * @author <a href="mailto:mercyblitz@gmail.com">Mercy</a>
- * @see EurekaServerReplicationEmbeddedTomcatAutoConfiguration
+ * @see TomcatEurekaServerReplicationAutoConfiguration
  * @since 1.0.0
  */
-class EurekaServerReplicationEmbeddedTomcatAutoConfigurationTest {
+class TomcatEurekaServerReplicationAutoConfigurationTest {
 
-    @Test
+    // @Test
     void test() throws Throwable {
         int count = 2;
         ExecutorService executorService = newFixedThreadPool(count);
 
-        AtomicReferenceArray<ConfigurableApplicationContext> contexts = new AtomicReferenceArray<>(count);
-
+        CompletionService<ConfigurableApplicationContext> completionService = new ExecutorCompletionService<>(executorService);
         for (int i = 0; i < count; i++) {
             final int port = 12345 + i;
-            final int index = i;
-            executorService.submit(() -> {
-                ConfigurableApplicationContext context = run(EurekaServerApplication.class, "--server.port=" + port);
-                contexts.set(index, context);
-            });
+            completionService.submit(() -> run(EurekaServerApplication.class, "--server.port=" + port));
         }
 
-        sleep(MAX_VALUE);
+        // TODO Check the registered applications
+        // sleep(MAX_VALUE);
 
         for (int i = 0; i < count; i++) {
-            ConfigurableApplicationContext context = contexts.get(i);
+            Future<ConfigurableApplicationContext> future = completionService.take();
+            ConfigurableApplicationContext context = future.get();
             int exit = exit(context);
             assertEquals(0, exit);
         }

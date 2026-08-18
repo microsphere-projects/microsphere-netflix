@@ -66,16 +66,8 @@ public class EurekaServerProperties {
         return this.replication.getThreads().getThreadNamePrefix();
     }
 
-    public int getMinThreads() {
-        return this.replication.getThreads().getMin();
-    }
-
-    public int getMaxThreads() {
-        return this.replication.getThreads().getMax();
-    }
-
-    public int getMaxQueueCapacity() {
-        return this.replication.getThreads().getMaxQueueCapacity();
+    public int getThreadsNumber() {
+        return this.replication.getThreads().getNumber();
     }
 
     public String getActionKey() {
@@ -167,48 +159,21 @@ public class EurekaServerProperties {
         public static class Threads {
 
             /**
-             * Maximum amount of replication threads.
+             * The number of replication threads.
              */
-            private int max = 1;
-
-            /**
-             * Minimum amount of replication threads.
-             */
-            private int min = 1;
-
-            /**
-             * Maximum capacity of the thread pool's backing queue. This setting only has
-             * an effect if the value is greater than 0.
-             */
-            private int maxQueueCapacity = 1000;
+            private int number = 2;
 
             /**
              * The prefix of the replication thread name.
              */
             private String threadNamePrefix = "Eureka-Server-Replication-Thread-";
 
-            public int getMax() {
-                return max;
+            public int getNumber() {
+                return number;
             }
 
-            public void setMax(int max) {
-                this.max = max;
-            }
-
-            public int getMin() {
-                return min;
-            }
-
-            public void setMin(int min) {
-                this.min = min;
-            }
-
-            public int getMaxQueueCapacity() {
-                return maxQueueCapacity;
-            }
-
-            public void setMaxQueueCapacity(int maxQueueCapacity) {
-                this.maxQueueCapacity = maxQueueCapacity;
+            public void setNumber(int number) {
+                this.number = number;
             }
 
             public String getThreadNamePrefix() {
