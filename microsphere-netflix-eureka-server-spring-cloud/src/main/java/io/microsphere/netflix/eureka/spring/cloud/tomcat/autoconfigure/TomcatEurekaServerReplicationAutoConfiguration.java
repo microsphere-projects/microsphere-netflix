@@ -24,8 +24,6 @@ import io.microsphere.netflix.eureka.spring.cloud.tomcat.servlet.listener.Replic
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletContextAttributeEvent;
 import jakarta.servlet.ServletContextAttributeListener;
-import jakarta.servlet.ServletContextEvent;
-import jakarta.servlet.ServletContextListener;
 import org.apache.catalina.Cluster;
 import org.apache.catalina.Context;
 import org.apache.catalina.Host;
@@ -284,25 +282,12 @@ public class TomcatEurekaServerReplicationAutoConfiguration implements EmbeddedV
         // DO NOTHING
     }
 
-    private class Listener implements ServletContextInitializer, ServletContextListener, ServletContextAttributeListener {
+    private class Listener implements ServletContextInitializer, ServletContextAttributeListener {
 
         @Override
         public void onStartup(ServletContext servletContext) {
             servletContext.addListener(replicatedInstanceListener);
             servletContext.addListener(this);
-        }
-
-        @Override
-        public void contextInitialized(ServletContextEvent sce) {
-        }
-
-        @Override
-        public void contextDestroyed(ServletContextEvent sce) {
-            try {
-                stopReplication();
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
         }
 
         @Override
