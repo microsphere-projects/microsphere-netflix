@@ -17,6 +17,7 @@
 package io.microsphere.netflix.eureka.spring.cloud.tomcat.servlet;
 
 import io.microsphere.logging.Logger;
+import io.microsphere.netflix.eureka.spring.cloud.EurekaServerProperties;
 import io.microsphere.netflix.eureka.spring.cloud.tomcat.servlet.listener.EurekaServerListener;
 import io.microsphere.netflix.eureka.spring.cloud.tomcat.servlet.listener.ReplicatedInstanceListener;
 import jakarta.servlet.ServletContainerInitializer;
@@ -31,6 +32,8 @@ import org.apache.catalina.Service;
 import org.apache.catalina.core.ApplicationContext;
 import org.apache.catalina.ha.CatalinaCluster;
 import org.apache.catalina.tribes.Channel;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 
 import java.util.Set;
 
@@ -45,6 +48,7 @@ import static org.springframework.util.ReflectionUtils.makeAccessible;
  * @see ServletContainerInitializer
  * @since 1.0.0
  */
+@EnableConfigurationProperties(EurekaServerProperties.class)
 public class ReplicatedInstanceServletContainerInitializer implements ServletContainerInitializer {
 
     private static final Logger logger = getLogger(ReplicatedInstanceServletContainerInitializer.class);
@@ -62,7 +66,9 @@ public class ReplicatedInstanceServletContainerInitializer implements ServletCon
                             Context context = (Context) f.get(applicationContext);
                             if (context != null) {
                                 Cluster cluster = context.getCluster();
-                                initCluster(cluster, servletContext);
+                                EurekaServerProperties eurekaServerProperties = getEurekaServerProperties(servletContext);
+                                ReplicatedInstanceListener replicatedInstanceListener = initReplicatedInstanceListener(cluster, eurekaServerProperties);
+                                servletContext.addListener(replicatedInstanceListener);
                                 initService(context, servletContext);
                             }
                         },
@@ -73,15 +79,26 @@ public class ReplicatedInstanceServletContainerInitializer implements ServletCon
         }
     }
 
-    private void initCluster(Cluster cluster, ServletContext servletContext) {
+    public static ReplicatedInstanceListener initReplicatedInstanceListener(Cluster cluster, EurekaServerProperties eurekaServerProperties) {
+        ReplicatedInstanceListener listener = null;
         if (cluster instanceof CatalinaCluster) {
             CatalinaCluster catalinaCluster = (CatalinaCluster) cluster;
             Channel channel = catalinaCluster.getChannel();
-            ReplicatedInstanceListener listener = new ReplicatedInstanceListener(servletContext);
-            servletContext.addListener(listener);
+            listener = new ReplicatedInstanceListener(eurekaServerProperties);
             channel.addChannelListener(listener);
             logger.info("The ReplicatedInstanceListener was added");
         }
+        return listener;
+    }
+
+    public static EurekaServerProperties getEurekaServerProperties(ServletContext servletContext) {
+        AnnotationConfigWebApplicationContext context = new AnnotationConfigWebApplicationContext();
+        context.setServletContext(servletContext);
+        context.register(ReplicatedInstanceServletContainerInitializer.class);
+        context.refresh();
+        EurekaServerProperties eurekaServerProperties = context.getBean(EurekaServerProperties.class);
+        context.close();
+        return eurekaServerProperties;
     }
 
     private void initService(Context context, ServletContext servletContext) {

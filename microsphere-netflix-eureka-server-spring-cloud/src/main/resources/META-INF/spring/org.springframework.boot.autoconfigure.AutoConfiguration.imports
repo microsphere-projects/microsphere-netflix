@@ -1,1 +1,1 @@
-io.microsphere.netflix.eureka.spring.cloud.tomcat.autoconfigure.EurekaServerEmbeddedTomcatAutoConfiguration
+io.microsphere.netflix.eureka.spring.cloud.tomcat.autoconfigure.EurekaServerReplicationEmbeddedTomcatAutoConfiguration

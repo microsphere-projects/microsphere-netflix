@@ -21,15 +21,14 @@ import com.netflix.appinfo.InstanceInfo;
 import com.netflix.discovery.converters.wrappers.CodecWrapper;
 import com.netflix.eureka.EurekaServerContext;
 import com.netflix.eureka.registry.PeerAwareInstanceRegistry;
-import com.netflix.eureka.registry.PeerAwareInstanceRegistryImpl;
+import com.netflix.eureka.registry.PeerAwareInstanceRegistryImpl.Action;
 import com.netflix.eureka.resources.ServerCodecs;
 import io.microsphere.logging.Logger;
+import io.microsphere.netflix.eureka.spring.cloud.EurekaServerProperties;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletContextEvent;
 import jakarta.servlet.ServletContextListener;
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.netflix.eureka.server.event.EurekaInstanceCanceledEvent;
 import org.springframework.cloud.netflix.eureka.server.event.EurekaInstanceRegisteredEvent;
 import org.springframework.cloud.netflix.eureka.server.event.EurekaInstanceRenewedEvent;
@@ -41,10 +40,9 @@ import java.io.IOException;
 import java.util.Map;
 
 import static com.netflix.eureka.registry.PeerAwareInstanceRegistryImpl.Action.Cancel;
+import static com.netflix.eureka.registry.PeerAwareInstanceRegistryImpl.Action.Heartbeat;
+import static com.netflix.eureka.registry.PeerAwareInstanceRegistryImpl.Action.Register;
 import static io.microsphere.logging.LoggerFactory.getLogger;
-import static io.microsphere.netflix.eureka.server.constants.PropertyConstants.EUREKA_SERVER_DEREGISTRATION_DELAY_PLACEHOLDER;
-import static io.microsphere.netflix.eureka.spring.cloud.tomcat.servlet.listener.ReplicatedInstanceListener.ACTION_METADATA_KEY;
-import static io.microsphere.netflix.eureka.spring.cloud.tomcat.servlet.listener.ReplicatedInstanceListener.REPLICATION_INSTANCE_NAME_PREFIX;
 import static java.lang.Thread.sleep;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.springframework.web.context.request.RequestContextHolder.getRequestAttributes;
@@ -63,56 +61,33 @@ public class EurekaServerListener implements ServletContextListener {
 
     public static final String EUREKA_SERVER_CONTEXT_ATTRIBUTE_NAME = "EurekaServerContext";
 
-    private EurekaServerContext eurekaServerContext;
+    private final EurekaServerContext eurekaServerContext;
 
-    private EurekaInstanceConfig eurekaInstanceConfig;
+    private final EurekaInstanceConfig eurekaInstanceConfig;
 
-    private CodecWrapper codecWrapper;
+    private final CodecWrapper codecWrapper;
 
-    private PeerAwareInstanceRegistry registry;
+    private final PeerAwareInstanceRegistry registry;
 
     private ServletContext servletContext;
 
+    private final String instanceNamePrefix;
+
+    private final String actionMetadataKey;
+
+    private final long deregistionDelay;
+
     private volatile boolean deregistered = false;
 
-    @Value(EUREKA_SERVER_DEREGISTRATION_DELAY_PLACEHOLDER)
-    private long deregistionDelay;
-
-    @Autowired
-    public void init(EurekaServerContext eurekaServerContext, EurekaInstanceConfig eurekaInstanceConfig) {
+    public EurekaServerListener(EurekaServerContext eurekaServerContext, EurekaInstanceConfig eurekaInstanceConfig,
+                                EurekaServerProperties eurekaServerProperties) {
         this.eurekaServerContext = eurekaServerContext;
         this.eurekaInstanceConfig = eurekaInstanceConfig;
-        initCodecWrapper(eurekaServerContext);
-        initPeerAwareInstanceRegistry(eurekaServerContext);
-    }
-
-    public static boolean isEurekaServerContextAttributeName(String name) {
-        return EUREKA_SERVER_CONTEXT_ATTRIBUTE_NAME.equals(name);
-    }
-
-    public static EurekaServerContext getEurekaServerContext(ServletContext servletContext) {
-        return (EurekaServerContext) servletContext.getAttribute(EUREKA_SERVER_CONTEXT_ATTRIBUTE_NAME);
-    }
-
-    public static EurekaServerListener getEurekaServerListener(ServletContext servletContext) {
-        return (EurekaServerListener) servletContext.getAttribute(EUREKA_SERVER_LISTENER_ATTRIBUTE_NAME);
-    }
-
-    private void initEurekaServerContext() {
-        String name = EUREKA_SERVER_CONTEXT_ATTRIBUTE_NAME;
-        servletContext.setAttribute(name, eurekaServerContext);
-        logger.info("The EurekaServerContext has been initialized into the ServletContext with name : {}", name);
-    }
-
-    private void initCodecWrapper(EurekaServerContext eurekaServerContext) {
-        ServerCodecs serverCodecs = eurekaServerContext.getServerCodecs();
-        this.codecWrapper = serverCodecs.getFullJsonCodec();
-        logger.info("The CodecWrapper has been initialized");
-    }
-
-    private void initPeerAwareInstanceRegistry(EurekaServerContext eurekaServerContext) {
-        this.registry = eurekaServerContext.getRegistry();
-        logger.info("The PeerAwareInstanceRegistry has been initialized");
+        this.codecWrapper = this.initCodecWrapper(eurekaServerContext);
+        this.registry = this.initPeerAwareInstanceRegistry(eurekaServerContext);
+        this.instanceNamePrefix = eurekaServerProperties.getInstanceNamePrefix();
+        this.actionMetadataKey = eurekaServerProperties.getActionKey();
+        this.deregistionDelay = eurekaServerProperties.getDeregistrationDelay();
     }
 
     @Override
@@ -143,7 +118,7 @@ public class EurekaServerListener implements ServletContextListener {
                 doReplicateInstance(instance, Cancel);
                 sleep(SECONDS.toMillis(1));
             }
-            logger.info("The current instance[appName : {} , id : {}] was deregistered before {}s!", appName, id, deregistionDelay);
+            logger.info("The current instance[appName : '{}' , id : '{}' ] was deregistered before {}s!", appName, id, deregistionDelay);
         } catch (Throwable e) {
             logger.error(e.getMessage(), e);
         }
@@ -153,15 +128,17 @@ public class EurekaServerListener implements ServletContextListener {
     @EventListener(EurekaInstanceRegisteredEvent.class)
     public void onEurekaInstanceRegisteredEvent(EurekaInstanceRegisteredEvent event) throws Throwable {
         if (event.isReplication()) {
+            logger.trace("[Replication] The {} will be ignored!", event);
             return;
         }
         InstanceInfo instance = event.getInstanceInfo();
-        replicateInstance(instance, PeerAwareInstanceRegistryImpl.Action.Register);
+        replicateInstance(instance, Register);
     }
 
     @EventListener(EurekaInstanceCanceledEvent.class)
     public void onEurekaInstanceCanceledEvent(EurekaInstanceCanceledEvent event) throws Throwable {
         if (event.isReplication()) {
+            logger.trace("[Replication] The {} will be ignored!", event);
             return;
         }
         String appName = event.getAppName();
@@ -173,13 +150,33 @@ public class EurekaServerListener implements ServletContextListener {
     @EventListener(EurekaInstanceRenewedEvent.class)
     public void onEurekaInstanceRenewedEvent(EurekaInstanceRenewedEvent event) throws Throwable {
         if (event.isReplication()) {
+            logger.trace("[Replication] The {} will be ignored!", event);
             return;
         }
         InstanceInfo instance = event.getInstanceInfo();
-        replicateInstance(instance, PeerAwareInstanceRegistryImpl.Action.Heartbeat);
+        replicateInstance(instance, Heartbeat);
     }
 
-    private void replicateInstance(InstanceInfo instance, PeerAwareInstanceRegistryImpl.Action action) throws IOException {
+    private void initEurekaServerContext() {
+        String name = EUREKA_SERVER_CONTEXT_ATTRIBUTE_NAME;
+        servletContext.setAttribute(name, eurekaServerContext);
+        logger.info("The EurekaServerContext has been initialized into the ServletContext with name : {}", name);
+    }
+
+    private CodecWrapper initCodecWrapper(EurekaServerContext eurekaServerContext) {
+        ServerCodecs serverCodecs = eurekaServerContext.getServerCodecs();
+        CodecWrapper codecWrapper = serverCodecs.getFullJsonCodec();
+        logger.info("The CodecWrapper has been initialized");
+        return codecWrapper;
+    }
+
+    private PeerAwareInstanceRegistry initPeerAwareInstanceRegistry(EurekaServerContext eurekaServerContext) {
+        PeerAwareInstanceRegistry registry = eurekaServerContext.getRegistry();
+        logger.info("The PeerAwareInstanceRegistry has been initialized");
+        return registry;
+    }
+
+    private void replicateInstance(InstanceInfo instance, Action action) throws IOException {
         if (instance == null) {
             return;
         }
@@ -188,20 +185,19 @@ public class EurekaServerListener implements ServletContextListener {
             return;
         }
         doReplicateInstance(instance, action);
-        logger.info("InstanceInfo[appName : {} , id : {} , action : {}] has been replicated",
-                instance.getAppName(), instance.getId(), action);
+        logger.info("[Action : '{}'] {} is about to be replicated!", action, instance);
     }
 
-    private void doReplicateInstance(InstanceInfo instance, PeerAwareInstanceRegistryImpl.Action action) throws IOException {
+    private void doReplicateInstance(InstanceInfo instance, Action action) throws IOException {
         Map<String, String> metadata = instance.getMetadata();
-        metadata.put(ACTION_METADATA_KEY, action.name());
+        metadata.put(actionMetadataKey, action.name());
 
         ServletContext servletContext = this.servletContext;
         String json = codecWrapper.encode(instance);
-        String name = REPLICATION_INSTANCE_NAME_PREFIX + instance.getId();
+        String name = this.instanceNamePrefix + instance.getId();
         servletContext.setAttribute(name, json);
         // remove "action" metadata and attribute after replication
-        metadata.remove(ACTION_METADATA_KEY);
+        metadata.remove(actionMetadataKey);
         servletContext.removeAttribute(name);
     }
 
@@ -214,5 +210,17 @@ public class EurekaServerListener implements ServletContextListener {
         }
         // Non-Web Request
         return null;
+    }
+
+    public static boolean isEurekaServerContextAttributeName(String name) {
+        return EUREKA_SERVER_CONTEXT_ATTRIBUTE_NAME.equals(name);
+    }
+
+    public static EurekaServerContext getEurekaServerContext(ServletContext servletContext) {
+        return (EurekaServerContext) servletContext.getAttribute(EUREKA_SERVER_CONTEXT_ATTRIBUTE_NAME);
+    }
+
+    public static EurekaServerListener getEurekaServerListener(ServletContext servletContext) {
+        return (EurekaServerListener) servletContext.getAttribute(EUREKA_SERVER_LISTENER_ATTRIBUTE_NAME);
     }
 }

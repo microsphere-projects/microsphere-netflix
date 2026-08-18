@@ -20,10 +20,10 @@ import com.netflix.appinfo.InstanceInfo;
 import com.netflix.discovery.converters.wrappers.CodecWrapper;
 import com.netflix.eureka.EurekaServerContext;
 import com.netflix.eureka.registry.PeerAwareInstanceRegistry;
-import com.netflix.eureka.registry.PeerAwareInstanceRegistryImpl;
+import com.netflix.eureka.registry.PeerAwareInstanceRegistryImpl.Action;
 import com.netflix.eureka.resources.ServerCodecs;
 import io.microsphere.logging.Logger;
-import io.microsphere.logging.LoggerFactory;
+import io.microsphere.netflix.eureka.spring.cloud.EurekaServerProperties;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletContextAttributeEvent;
 import jakarta.servlet.ServletContextAttributeListener;
@@ -31,7 +31,7 @@ import jakarta.servlet.ServletContextEvent;
 import jakarta.servlet.ServletContextListener;
 import org.apache.catalina.tribes.ChannelListener;
 import org.apache.catalina.tribes.Member;
-import org.apache.catalina.tribes.tipis.AbstractReplicatedMap;
+import org.apache.catalina.tribes.tipis.AbstractReplicatedMap.MapMessage;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 
 import java.io.IOException;
@@ -41,10 +41,13 @@ import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ThreadPoolExecutor.DiscardOldestPolicy;
 
+import static com.netflix.eureka.registry.PeerAwareInstanceRegistryImpl.Action.valueOf;
 import static io.microsphere.logging.LoggerFactory.getLogger;
+import static io.microsphere.netflix.eureka.spring.cloud.tomcat.servlet.listener.EurekaServerListener.isEurekaServerContextAttributeName;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static org.apache.catalina.tribes.tipis.AbstractReplicatedMap.MapMessage.MSG_COPY;
 
 /**
  * Replicated Instance Listener implements
@@ -64,34 +67,34 @@ public class ReplicatedInstanceListener implements ServletContextListener, Servl
 
     private static final Logger logger = getLogger(ReplicatedInstanceListener.class);
 
-    public static final String ACTION_METADATA_KEY = "_action_";
-
-    public static final String REPLICATION_INSTANCE_NAME_PREFIX = "ReplicatedInstance-";
-
-    private static final String THREAD_NAME_PREFIX = "Eureka-Replicated-Instance-Messages-Thread-";
-
-    private static final String THREADS_PARAM_NAME = "microsphere.eureka.replicated-instance.messages.threads";
-
-    private static final String CAPACITY_PARAM_NAME = "microsphere.eureka.replicated-instance.messages.capacity";
-
-    private final ServletContext servletContext;
-
-    private final ThreadPoolExecutor threadPoolExecutor;
-
     private final Object mutex = new Object();
 
     private volatile EurekaServerContext eurekaServerContext;
 
-    public ReplicatedInstanceListener(ServletContext servletContext) {
-        this.servletContext = servletContext;
-        this.threadPoolExecutor = buildThreadPoolExecutor(servletContext);
+    private final EurekaServerProperties eurekaServerProperties;
+
+    private final ThreadPoolExecutor threadPoolExecutor;
+
+    private ServletContext servletContext;
+
+    public ReplicatedInstanceListener(EurekaServerProperties eurekaServerProperties) {
+        this.eurekaServerProperties = eurekaServerProperties;
+        this.threadPoolExecutor = createThreadPoolExecutor();
+    }
+
+    private ThreadPoolExecutor createThreadPoolExecutor() {
+        BlockingQueue<Runnable> blockingQueue = new ArrayBlockingQueue<>(this.eurekaServerProperties.getMaxQueueCapacity());
+        CustomizableThreadFactory threadFactory = new CustomizableThreadFactory(this.eurekaServerProperties.getThreadNamePrefix());
+        ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(this.eurekaServerProperties.getMinThreads(), this.eurekaServerProperties.getMaxThreads(), 0, MILLISECONDS,
+                blockingQueue, threadFactory, new DiscardOldestPolicy());
+        return threadPoolExecutor;
     }
 
     @Override
     public void contextInitialized(ServletContextEvent event) {
-        threadPoolExecutor.prestartCoreThread();
-        ServletContext servletContext = event.getServletContext();
-        processReceivedReplicationInstances(servletContext);
+        this.threadPoolExecutor.prestartCoreThread();
+        this.servletContext = event.getServletContext();
+        processReceivedReplicationInstances(this.servletContext);
     }
 
     private void processReceivedReplicationInstances(ServletContext servletContext) {
@@ -114,20 +117,13 @@ public class ReplicatedInstanceListener implements ServletContextListener, Servl
         Object value = event.getValue();
         logger.info("The ServletContext attribute[name : {} , value : {}] was added!", name, value);
 
-        if (EurekaServerListener.isEurekaServerContextAttributeName(name)) {
-            EurekaServerContext eurekaServerContext = this.eurekaServerContext;
-            if (eurekaServerContext == null) {
+        if (isEurekaServerContextAttributeName(name)) {
+            EurekaServerContext eurekaServerContext = getEurekaServerContext();
+            if (eurekaServerContext != null) {
                 synchronized (mutex) {
-                    eurekaServerContext = this.eurekaServerContext;
-                    if (eurekaServerContext == null) {
-                        eurekaServerContext = (EurekaServerContext) value;
-                        this.eurekaServerContext = eurekaServerContext;
-                        synchronized (mutex) {
-                            mutex.notifyAll();
-                        }
-                        logger.info("EurekaServerContext is ready , the process will be resumed");
-                    }
+                    mutex.notifyAll();
                 }
+                logger.info("EurekaServerContext is ready , the process will be resumed");
             }
         }
     }
@@ -149,45 +145,13 @@ public class ReplicatedInstanceListener implements ServletContextListener, Servl
     @Override
     public void contextDestroyed(ServletContextEvent event) {
         threadPoolExecutor.shutdown();
-        logger.info("The {}Pool is shutting down", THREAD_NAME_PREFIX);
-    }
-
-    private ThreadPoolExecutor buildThreadPoolExecutor(ServletContext servletContext) {
-        String value = servletContext.getInitParameter(THREADS_PARAM_NAME);
-        int size = 1;
-        if (value != null) {
-            size = Integer.valueOf(value);
-        }
-
-        BlockingQueue<Runnable> blockingQueue = buildBlockingQueue(servletContext);
-        CustomizableThreadFactory threadFactory = new CustomizableThreadFactory("Eureka-Replication-Instance-Messages-Thread-");
-
-        ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(size, size,
-                0, MILLISECONDS,
-                blockingQueue,
-                threadFactory,
-                new ThreadPoolExecutor.DiscardOldestPolicy()
-        );
-        return threadPoolExecutor;
-    }
-
-    private BlockingQueue<Runnable> buildBlockingQueue(ServletContext servletContext) {
-        String value = servletContext.getInitParameter(CAPACITY_PARAM_NAME);
-        int capacity = 100;
-        if (value != null) {
-            capacity = Integer.valueOf(value);
-        }
-        return new ArrayBlockingQueue<>(capacity);
+        logger.info("The {} is shutting down", this.threadPoolExecutor);
     }
 
     @Override
     public void messageReceived(Serializable msg, Member sender) {
-        if (!(msg instanceof AbstractReplicatedMap.MapMessage)) {
-            return;
-        }
-
-        AbstractReplicatedMap.MapMessage mapMessage = (AbstractReplicatedMap.MapMessage) msg;
-        if (mapMessage.getMsgType() != AbstractReplicatedMap.MapMessage.MSG_COPY) {
+        MapMessage mapMessage = (MapMessage) msg;
+        if (mapMessage.getMsgType() != MSG_COPY) {
             return;
         }
 
@@ -197,7 +161,6 @@ public class ReplicatedInstanceListener implements ServletContextListener, Servl
             String name = (String) key;
             if (isReplicateInstanceName(name)) {
                 async(() -> {
-
                     synchronized (mutex) {
                         while ((getEurekaServerContext()) == null) {
                             try {
@@ -222,10 +185,9 @@ public class ReplicatedInstanceListener implements ServletContextListener, Servl
         return codecWrapper.decode(json, InstanceInfo.class);
     }
 
+    @FunctionalInterface
     private interface Task {
-
         void execute() throws Throwable;
-
     }
 
     private void async(Task task) {
@@ -239,11 +201,11 @@ public class ReplicatedInstanceListener implements ServletContextListener, Servl
     }
 
     private boolean isReplicateInstanceName(String name) {
-        return name.startsWith(REPLICATION_INSTANCE_NAME_PREFIX);
+        return name.startsWith(this.eurekaServerProperties.getInstanceNamePrefix());
     }
 
     private void process(InstanceInfo replicatedInstance, String json) {
-        PeerAwareInstanceRegistryImpl.Action action = getAction(replicatedInstance);
+        Action action = getAction(replicatedInstance);
         String appName = replicatedInstance.getAppName();
         String id = replicatedInstance.getId();
         PeerAwareInstanceRegistry registry = getRegistry();
@@ -255,31 +217,31 @@ public class ReplicatedInstanceListener implements ServletContextListener, Servl
 
         switch (action) {
             case Register:
-                doRegister(registry, replicatedInstance);
+                register(registry, replicatedInstance);
                 break;
             case Cancel:
-                doCancel(registry, replicatedInstance);
+                cancel(registry, replicatedInstance);
                 break;
             case Heartbeat:
-                doRenew(registry, replicatedInstance);
+                renew(registry, replicatedInstance);
                 break;
         }
         servletContext.removeAttribute(id);
     }
 
-    private PeerAwareInstanceRegistryImpl.Action getAction(InstanceInfo replicatedInstance) {
+    private Action getAction(InstanceInfo replicatedInstance) {
         Map<String, String> metadata = replicatedInstance.getMetadata();
         // remove "action" metadata after replication
-        String actionName = metadata.remove(ACTION_METADATA_KEY);
-        return PeerAwareInstanceRegistryImpl.Action.valueOf(actionName);
+        String actionName = metadata.remove(this.eurekaServerProperties.getActionKey());
+        return valueOf(actionName);
     }
 
-    private void doRegister(PeerAwareInstanceRegistry registry, InstanceInfo replicatedInstance) {
+    private void register(PeerAwareInstanceRegistry registry, InstanceInfo replicatedInstance) {
         registry.register(replicatedInstance, true);
         logger.info("The replicated instance[id : {}] has been registered", replicatedInstance.getId());
     }
 
-    private void doCancel(PeerAwareInstanceRegistry registry, InstanceInfo replicatedInstance) {
+    private void cancel(PeerAwareInstanceRegistry registry, InstanceInfo replicatedInstance) {
         String appName = replicatedInstance.getAppName();
         String serviceInstanceId = replicatedInstance.getId();
         InstanceInfo instanceInfo = registry.getInstanceByAppAndId(appName, serviceInstanceId);
@@ -291,13 +253,13 @@ public class ReplicatedInstanceListener implements ServletContextListener, Servl
         logger.info("The replicated instance[id : {}] has been cancelled", serviceInstanceId);
     }
 
-    private void doRenew(PeerAwareInstanceRegistry registry, InstanceInfo replicatedInstance) {
+    private void renew(PeerAwareInstanceRegistry registry, InstanceInfo replicatedInstance) {
         String appName = replicatedInstance.getAppName();
         String serviceInstanceId = replicatedInstance.getId();
         InstanceInfo instanceInfo = registry.getInstanceByAppAndId(appName, serviceInstanceId);
         if (instanceInfo == null) {
             logger.info("The replicated instance[id : {}] was not found, thus it will be registered", serviceInstanceId);
-            doRegister(registry, replicatedInstance);
+            register(registry, replicatedInstance);
         } else {
             registry.renew(appName, serviceInstanceId, true);
             logger.info("The replicated instance[id : {}] was renewed", serviceInstanceId);
@@ -306,7 +268,7 @@ public class ReplicatedInstanceListener implements ServletContextListener, Servl
 
     @Override
     public boolean accept(Serializable msg, Member sender) {
-        return true;
+        return msg instanceof MapMessage;
     }
 
     private CodecWrapper getCodecWrapper() {
@@ -340,5 +302,4 @@ public class ReplicatedInstanceListener implements ServletContextListener, Servl
         }
         return eurekaServerContext;
     }
-
 }

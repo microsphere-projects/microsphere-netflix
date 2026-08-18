@@ -17,9 +17,9 @@
 package io.microsphere.netflix.eureka.spring.cloud.tomcat.autoconfigure;
 
 import io.microsphere.logging.Logger;
+import io.microsphere.netflix.eureka.spring.cloud.EurekaServerProperties;
 import io.microsphere.netflix.eureka.spring.cloud.tomcat.servlet.listener.EurekaServerListener;
 import io.microsphere.netflix.eureka.spring.cloud.tomcat.servlet.listener.ReplicatedInstanceListener;
-import jakarta.servlet.Servlet;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletContextAttributeEvent;
 import jakarta.servlet.ServletContextAttributeListener;
@@ -39,10 +39,9 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
-import org.springframework.boot.autoconfigure.condition.SearchStrategy;
-import org.springframework.boot.autoconfigure.web.servlet.ServletWebServerFactoryAutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.embedded.tomcat.TomcatContextCustomizer;
 import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
 import org.springframework.boot.web.servlet.ServletContextInitializer;
@@ -52,7 +51,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.io.Resource;
-import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringValueResolver;
 import org.xml.sax.InputSource;
 
@@ -65,40 +63,55 @@ import java.util.List;
 import java.util.Map;
 
 import static io.microsphere.logging.LoggerFactory.getLogger;
-import static io.microsphere.netflix.eureka.server.constants.PropertyConstants.EUREKA_SERVER_REPLICATION_TIMEOUT_PLACEHOLDER;
+import static io.microsphere.netflix.eureka.spring.cloud.tomcat.servlet.ReplicatedInstanceServletContainerInitializer.initReplicatedInstanceListener;
+import static java.lang.Thread.currentThread;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication.Type.SERVLET;
+import static org.springframework.util.ObjectUtils.isEmpty;
 import static org.springframework.util.StreamUtils.copyToString;
 
 /**
- * Eureka Server Tomcat {@link Configuration @Configuration}
+ * The Auto-{@link Configuration @Configuration} class for Netflix Eureka Server Replication on the Embedded Tomcat
  *
  * @author <a href="mailto:mercyblitz@gmail.com">Mercy</a>
- * @see ServletWebServerFactoryAutoConfiguration
+ * @see org.springframework.boot.autoconfigure.web.servlet.ServletWebServerFactoryAutoConfiguration
+ * @see org.springframework.boot.tomcat.autoconfigure.servlet.TomcatServletWebServerAutoConfiguration
  * @see TomcatServletWebServerFactory
+ * @see org.apache.catalina.startup.Tomcat
+ * @see org.apache.catalina.ha.tcp.SimpleTcpCluster
+ * @see org.apache.catalina.ha.ClusterRuleSet
  * @since 1.0.0
  */
 @ConditionalOnClass(
-        value = {
-                Servlet.class
-        },
         name = {
                 "org.apache.catalina.startup.Tomcat",
                 "org.apache.catalina.ha.tcp.SimpleTcpCluster",
                 "org.apache.catalina.ha.ClusterRuleSet"
         })
-@ConditionalOnBean(value = ServletWebServerFactory.class, search = SearchStrategy.CURRENT)
-@Import(value = {EurekaServerListener.class})
-@AutoConfigureAfter(ServletWebServerFactoryAutoConfiguration.class)
-public class EurekaServerEmbeddedTomcatAutoConfiguration implements EmbeddedValueResolverAware, BeanClassLoaderAware,
+@ConditionalOnWebApplication(type = SERVLET)
+@AutoConfigureAfter(
+        name = {
+                "org.springframework.boot.autoconfigure.web.servlet.ServletWebServerFactoryAutoConfiguration",   // Spring Boot [2.0, 4.0)
+                "org.springframework.boot.tomcat.autoconfigure.servlet.TomcatServletWebServerAutoConfiguration", // Spring Boot [4.0,)
+        }
+)
+@Import(value = {
+        EurekaServerListener.class
+})
+@EnableConfigurationProperties(
+        value = {
+                EurekaServerProperties.class
+        }
+)
+public class EurekaServerReplicationEmbeddedTomcatAutoConfiguration implements EmbeddedValueResolverAware, BeanClassLoaderAware,
         BeanNameAware, DisposableBean, AbstractReplicatedMap.MapOwner {
 
-    private static final Logger logger = getLogger(EurekaServerEmbeddedTomcatAutoConfiguration.class);
+    private static final Logger logger = getLogger(EurekaServerReplicationEmbeddedTomcatAutoConfiguration.class);
 
     @Value("classpath:/META-INF/conf/cluster.xml")
     private Resource resource;
 
-    @Value(EUREKA_SERVER_REPLICATION_TIMEOUT_PLACEHOLDER)
-    private int replicationTimeout;
+    private final EurekaServerProperties eurekaServerProperties;
 
     private StringValueResolver resolver;
 
@@ -110,11 +123,15 @@ public class EurekaServerEmbeddedTomcatAutoConfiguration implements EmbeddedValu
 
     private String beanName;
 
+    public EurekaServerReplicationEmbeddedTomcatAutoConfiguration(EurekaServerProperties eurekaServerProperties) {
+        this.eurekaServerProperties = eurekaServerProperties;
+    }
+
     @Bean
     public TomcatContextCustomizer installSimpleTcpClusterCustomizer(ConfigurableListableBeanFactory beanFactory) {
         return context -> {
             String[] beanNames = beanFactory.getBeanNamesForType(ServletWebServerFactory.class, false, false);
-            if (ObjectUtils.isEmpty(beanNames)) {
+            if (isEmpty(beanNames)) {
                 // Standard Tomcat
                 logger.info("Current Eureka Server is running on the standard Tomcat Web Server");
                 return;
@@ -128,8 +145,8 @@ public class EurekaServerEmbeddedTomcatAutoConfiguration implements EmbeddedValu
 
     @Override
     public void destroy() {
-        if (replicatedMap != null) {
-            replicatedMap.breakdown();
+        if (this.replicatedMap != null) {
+            this.replicatedMap.breakdown();
         }
     }
 
@@ -138,25 +155,18 @@ public class EurekaServerEmbeddedTomcatAutoConfiguration implements EmbeddedValu
         try {
             SimpleTcpCluster cluster = buildCluster();
             host.setCluster(cluster);
-            initReplicatedInstanceListener(context, cluster);
+            this.replicatedInstanceListener = initReplicatedInstanceListener(cluster, this.eurekaServerProperties);
             initReplicatedMap(context, cluster);
         } catch (Throwable e) {
             logger.error(e.getMessage(), e);
         }
     }
 
-    private void initReplicatedInstanceListener(Context context, SimpleTcpCluster cluster) {
-        ServletContext servletContext = context.getServletContext();
-        ReplicatedInstanceListener listener = new ReplicatedInstanceListener(servletContext);
-        Channel channel = cluster.getChannel();
-        channel.addChannelListener(listener);
-        this.replicatedInstanceListener = listener;
-    }
-
     private void initReplicatedMap(Context context, SimpleTcpCluster cluster) {
         Channel channel = cluster.getChannel();
         String name = context.getName();
         ClassLoader[] classLoaders = getClassLoaders();
+        long replicationTimeout = this.eurekaServerProperties.getReplicationTimeout();
         ReplicatedMap<String, Object> replicatedMap = new ReplicatedMap<>(this, channel, replicationTimeout, name, classLoaders);
         replicatedMap.setChannelSendOptions(cluster.getChannelSendOptions());
         this.replicatedMap = replicatedMap;
@@ -165,12 +175,12 @@ public class EurekaServerEmbeddedTomcatAutoConfiguration implements EmbeddedValu
     private ClassLoader[] getClassLoaders() {
         ClassLoader classLoader = this.classLoader;
         if (classLoader == null) {
-            classLoader = Thread.currentThread().getContextClassLoader();
+            classLoader = currentThread().getContextClassLoader();
         }
-        if (classLoader == Thread.currentThread().getContextClassLoader()) {
+        if (classLoader == currentThread().getContextClassLoader()) {
             return new ClassLoader[]{classLoader};
         } else {
-            return new ClassLoader[]{classLoader, Thread.currentThread().getContextClassLoader()};
+            return new ClassLoader[]{classLoader, currentThread().getContextClassLoader()};
         }
     }
 
