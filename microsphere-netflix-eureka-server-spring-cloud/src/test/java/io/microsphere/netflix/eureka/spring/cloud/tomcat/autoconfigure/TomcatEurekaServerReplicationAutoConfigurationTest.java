@@ -73,14 +73,14 @@ class TomcatEurekaServerReplicationAutoConfigurationTest {
             PeerAwareInstanceRegistry registry = eurekaServerContext.getRegistry();
             List<InstanceInfo> instances;
 
-            do {
+            for (int j = 0; j < 50; j++) {
                 Application application = registry.getApplication(applicationName);
                 instances = application == null ? emptyList() : application.getInstances();
                 if (instances.size() == count) {
                     break;
                 }
                 sleep(500L);
-            } while (true);
+            }
         }
 
         for (int i = 0; i < count; i++) {
