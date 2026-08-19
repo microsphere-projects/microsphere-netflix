@@ -20,13 +20,19 @@ package io.microsphere.netflix.eureka.spring.cloud.tomcat.autoconfigure;
 
 import io.microsphere.netflix.eureka.spring.cloud.tomcat.sample.EurekaServerApplication;
 import org.junit.jupiter.api.Test;
+import org.springframework.cloud.client.ServiceInstance;
+import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.context.ConfigurableApplicationContext;
 
+import java.util.List;
 import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
+import static io.microsphere.collection.ListUtils.newArrayList;
+import static java.lang.Thread.sleep;
+import static java.util.Collections.emptyList;
 import static java.util.concurrent.Executors.newFixedThreadPool;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.boot.SpringApplication.exit;
@@ -52,11 +58,28 @@ class TomcatEurekaServerReplicationAutoConfigurationTest {
             completionService.submit(() -> run(EurekaServerApplication.class, "--server.port=" + port));
         }
 
+        List<ConfigurableApplicationContext> contexts = newArrayList(count);
+
+        String applicationName = "eureka-server";
+
         for (int i = 0; i < count; i++) {
             Future<ConfigurableApplicationContext> future = completionService.take();
             ConfigurableApplicationContext context = future.get();
-            int exit = exit(context);
-            assertEquals(0, exit);
+            contexts.add(context);
+            DiscoveryClient discoveryClient = context.getBean(DiscoveryClient.class);
+            List<ServiceInstance> instances = emptyList();
+            do {
+                instances = discoveryClient.getInstances(applicationName);
+                if (instances.size() == count) {
+                    break;
+                }
+                sleep(5000L);
+            } while (true);
+        }
+
+        for (int i = 0; i < count; i++) {
+            ConfigurableApplicationContext context = contexts.get(i);
+            assertEquals(0, exit(context));
         }
 
         executorService.shutdown();
