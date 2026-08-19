@@ -121,8 +121,14 @@ public class ReplicatedInstanceListener implements ServletContextListener, Chann
 
     @Override
     public void contextDestroyed(ServletContextEvent event) {
-        scheduledThreadPoolExecutor.shutdown();
-        logger.info("The {} is shutting down", this.scheduledThreadPoolExecutor);
+        stop();
+    }
+
+    public void stop() {
+        if (!scheduledThreadPoolExecutor.isShutdown()) {
+            scheduledThreadPoolExecutor.shutdown();
+            logger.info("The {} is shutting down", this.scheduledThreadPoolExecutor);
+        }
     }
 
     @Override

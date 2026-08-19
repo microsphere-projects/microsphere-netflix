@@ -17,6 +17,7 @@
 package io.microsphere.netflix.eureka.spring.cloud.tomcat.autoconfigure;
 
 import com.netflix.eureka.EurekaServerContext;
+import io.microsphere.annotation.Nonnull;
 import io.microsphere.logging.Logger;
 import io.microsphere.netflix.eureka.spring.cloud.EurekaServerProperties;
 import io.microsphere.netflix.eureka.spring.cloud.tomcat.servlet.listener.EurekaServerListener;
@@ -24,7 +25,6 @@ import io.microsphere.netflix.eureka.spring.cloud.tomcat.servlet.listener.Replic
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletContextAttributeEvent;
 import jakarta.servlet.ServletContextAttributeListener;
-import org.apache.catalina.Cluster;
 import org.apache.catalina.Context;
 import org.apache.catalina.Host;
 import org.apache.catalina.connector.Connector;
@@ -37,7 +37,6 @@ import org.apache.catalina.tribes.tipis.AbstractReplicatedMap;
 import org.apache.catalina.tribes.tipis.ReplicatedMap;
 import org.apache.tomcat.util.digester.Digester;
 import org.springframework.beans.factory.BeanClassLoaderAware;
-import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
@@ -48,7 +47,6 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.web.embedded.tomcat.TomcatContextCustomizer;
 import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
 import org.springframework.boot.web.servlet.ServletContextInitializer;
-import org.springframework.boot.web.servlet.server.ServletWebServerFactory;
 import org.springframework.context.EmbeddedValueResolverAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -66,10 +64,9 @@ import java.util.List;
 import java.util.Map;
 
 import static io.microsphere.logging.LoggerFactory.getLogger;
-import static java.lang.Thread.currentThread;
+import static io.microsphere.util.ArrayUtils.ofArray;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication.Type.SERVLET;
-import static org.springframework.util.ObjectUtils.isEmpty;
 import static org.springframework.util.StreamUtils.copyToString;
 
 /**
@@ -102,7 +99,8 @@ import static org.springframework.util.StreamUtils.copyToString;
         }
 )
 @Import(value = {
-        EurekaServerListener.class
+        EurekaServerListener.class,
+        TomcatEurekaServerReplicationAutoConfiguration.Listener.class
 })
 @EnableConfigurationProperties(
         value = {
@@ -110,28 +108,33 @@ import static org.springframework.util.StreamUtils.copyToString;
         }
 )
 public class TomcatEurekaServerReplicationAutoConfiguration implements EmbeddedValueResolverAware, BeanClassLoaderAware,
-        BeanNameAware, DisposableBean, AbstractReplicatedMap.MapOwner {
+        DisposableBean, AbstractReplicatedMap.MapOwner {
 
     private static final Logger logger = getLogger(TomcatEurekaServerReplicationAutoConfiguration.class);
 
     @Value("classpath:/META-INF/conf/cluster.xml")
     private Resource resource;
 
+    @Nonnull
     private final EurekaServerContext eurekaServerContext;
 
+    @Nonnull
     private final EurekaServerProperties eurekaServerProperties;
 
+    @Nonnull
     private StringValueResolver resolver;
 
+    @Nonnull
     private ClassLoader classLoader;
 
+    @Nonnull
     private SimpleTcpCluster cluster;
 
+    @Nonnull
     private ReplicatedMap<String, Object> replicatedMap;
 
+    @Nonnull
     private ReplicatedInstanceListener replicatedInstanceListener;
-
-    private String beanName;
 
     public TomcatEurekaServerReplicationAutoConfiguration(EurekaServerContext eurekaServerContext,
                                                           EurekaServerProperties eurekaServerProperties) {
@@ -142,17 +145,24 @@ public class TomcatEurekaServerReplicationAutoConfiguration implements EmbeddedV
     @Bean
     public TomcatContextCustomizer installSimpleTcpClusterCustomizer(ConfigurableListableBeanFactory beanFactory) {
         return context -> {
-            String[] beanNames = beanFactory.getBeanNamesForType(ServletWebServerFactory.class, false, false);
-            if (isEmpty(beanNames)) {
-                // Standard Tomcat
-                logger.info("Current Eureka Server is running on the standard Tomcat Web Server");
-                return;
-            }
-            logger.info("Current Eureka Server is initializing on the embedded Tomcat Web Server[name : {}]", beanNames[0]);
             // Embedded Tomcat
             initEmbeddedTomcat(context);
-            beanFactory.registerSingleton(beanName + ".listener", new Listener());
         };
+    }
+
+    @Override
+    public void setEmbeddedValueResolver(StringValueResolver resolver) {
+        this.resolver = resolver;
+    }
+
+    @Override
+    public void setBeanClassLoader(ClassLoader classLoader) {
+        this.classLoader = classLoader;
+    }
+
+    @Override
+    public void objectMadePrimary(Object key, Object value) {
+        // DO NOTHING
     }
 
     @Override
@@ -161,15 +171,13 @@ public class TomcatEurekaServerReplicationAutoConfiguration implements EmbeddedV
     }
 
     private void stopReplication() throws Exception {
-        if (this.replicatedMap != null) {
-            this.replicatedMap.breakdown();
-        }
-        if (this.cluster != null) {
-            this.cluster.stop();
-        }
+        this.replicatedInstanceListener.stop();
+        this.replicatedMap.breakdown();
+        this.cluster.stop();
     }
 
     private void initEmbeddedTomcat(Context context) {
+        logger.info("Current Eureka Server is initializing on the embedded Tomcat Web Server[context : {}]", context);
         Host host = (Host) context.getParent();
         try {
             SimpleTcpCluster cluster = buildCluster();
@@ -182,16 +190,13 @@ public class TomcatEurekaServerReplicationAutoConfiguration implements EmbeddedV
         }
     }
 
-    private void initReplicatedInstanceListener(Cluster cluster) {
-        if (cluster instanceof CatalinaCluster) {
-            CatalinaCluster catalinaCluster = (CatalinaCluster) cluster;
-            Channel channel = catalinaCluster.getChannel();
-            ReplicatedInstanceListener listener = new ReplicatedInstanceListener(this.eurekaServerContext, this.eurekaServerProperties);
-            channel.addChannelListener(listener);
+    private void initReplicatedInstanceListener(CatalinaCluster cluster) {
+        Channel channel = cluster.getChannel();
+        ReplicatedInstanceListener listener = new ReplicatedInstanceListener(this.eurekaServerContext, this.eurekaServerProperties);
+        channel.addChannelListener(listener);
 
-            this.replicatedInstanceListener = listener;
-            logger.info("The ReplicatedInstanceListener was added");
-        }
+        this.replicatedInstanceListener = listener;
+        logger.info("The ReplicatedInstanceListener was added");
     }
 
     private void initReplicatedMap(Context context, SimpleTcpCluster cluster) {
@@ -205,15 +210,7 @@ public class TomcatEurekaServerReplicationAutoConfiguration implements EmbeddedV
     }
 
     private ClassLoader[] getClassLoaders() {
-        ClassLoader classLoader = this.classLoader;
-        if (classLoader == null) {
-            classLoader = currentThread().getContextClassLoader();
-        }
-        if (classLoader == currentThread().getContextClassLoader()) {
-            return new ClassLoader[]{classLoader};
-        } else {
-            return new ClassLoader[]{classLoader, currentThread().getContextClassLoader()};
-        }
+        return ofArray(this.classLoader);
     }
 
     private SimpleTcpCluster buildCluster() throws Throwable {
@@ -223,11 +220,11 @@ public class TomcatEurekaServerReplicationAutoConfiguration implements EmbeddedV
     }
 
     private void parseCluster(SimpleTcpCluster cluster) throws Throwable {
-        try (InputStream inputStream = resource.getInputStream()) {
+        try (InputStream inputStream = this.resource.getInputStream()) {
             String xmlContent = copyToString(inputStream, UTF_8);
             Digester digester = createStartDigester();
-            String resolvedXmlContent = resolver.resolveStringValue(xmlContent);
-            InputSource inputSource = new InputSource(resource.getURI().toURL().toString());
+            String resolvedXmlContent = this.resolver.resolveStringValue(xmlContent);
+            InputSource inputSource = new InputSource(this.resource.getURI().toURL().toString());
             inputSource.setCharacterStream(new StringReader(resolvedXmlContent));
             digester.push(cluster);
             digester.parse(inputSource);
@@ -259,30 +256,9 @@ public class TomcatEurekaServerReplicationAutoConfiguration implements EmbeddedV
         ClusterRuleSet clusterRuleSet = new ClusterRuleSet("Cluster/");
         digester.addRuleSet(clusterRuleSet);
         return digester;
-
     }
 
-    @Override
-    public void setEmbeddedValueResolver(StringValueResolver resolver) {
-        this.resolver = resolver;
-    }
-
-    @Override
-    public void setBeanClassLoader(ClassLoader classLoader) {
-        this.classLoader = classLoader;
-    }
-
-    @Override
-    public void setBeanName(String name) {
-        this.beanName = name;
-    }
-
-    @Override
-    public void objectMadePrimary(Object key, Object value) {
-        // DO NOTHING
-    }
-
-    private class Listener implements ServletContextInitializer, ServletContextAttributeListener {
+    class Listener implements ServletContextInitializer, ServletContextAttributeListener {
 
         @Override
         public void onStartup(ServletContext servletContext) {
@@ -306,10 +282,6 @@ public class TomcatEurekaServerReplicationAutoConfiguration implements EmbeddedV
         }
 
         private void processServletContextAttributeEvent(ServletContextAttributeEvent event, boolean removed) {
-            if (replicatedMap == null) {
-                logger.warn("The ReplicatedMap is not ready!");
-                return;
-            }
             Object value = event.getValue();
             if (!(value instanceof Serializable)) {
                 return;
@@ -326,5 +298,4 @@ public class TomcatEurekaServerReplicationAutoConfiguration implements EmbeddedV
                     , name, value, removed);
         }
     }
-
 }

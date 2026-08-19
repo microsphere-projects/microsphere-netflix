@@ -28,6 +28,7 @@ import io.microsphere.netflix.eureka.spring.cloud.EurekaServerProperties;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletContextEvent;
 import jakarta.servlet.ServletContextListener;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.cloud.netflix.eureka.server.event.EurekaInstanceCanceledEvent;
 import org.springframework.cloud.netflix.eureka.server.event.EurekaInstanceRegisteredEvent;
 import org.springframework.cloud.netflix.eureka.server.event.EurekaInstanceRenewedEvent;
@@ -41,7 +42,6 @@ import static com.netflix.eureka.registry.PeerAwareInstanceRegistryImpl.Action.H
 import static com.netflix.eureka.registry.PeerAwareInstanceRegistryImpl.Action.Register;
 import static io.microsphere.logging.LoggerFactory.getLogger;
 import static java.lang.Thread.sleep;
-import static java.util.concurrent.TimeUnit.SECONDS;
 
 /**
  * Customized EurekaServer Listener
@@ -50,7 +50,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
  * @see ReplicatedInstanceListener
  * @since 1.0.0
  */
-public class EurekaServerListener implements ServletContextListener {
+public class EurekaServerListener implements ServletContextListener, DisposableBean {
 
     private static final Logger logger = getLogger(EurekaServerListener.class);
 
@@ -90,6 +90,11 @@ public class EurekaServerListener implements ServletContextListener {
         deregister();
     }
 
+    @Override
+    public void destroy() {
+        deregister();
+    }
+
     public void deregister() {
         if (deregistered) {
             return;
@@ -102,10 +107,8 @@ public class EurekaServerListener implements ServletContextListener {
             return;
         }
         try {
-            for (int i = 0; i < deregistionDelay; i++) {
-                doReplicateInstance(instance, Cancel);
-                sleep(SECONDS.toMillis(1));
-            }
+            doReplicateInstance(instance, Cancel);
+            sleep(deregistionDelay);
             logger.info("The current instance[appName : '{}' , id : '{}' ] was deregistered before {}s!", appName, id, deregistionDelay);
         } catch (Throwable e) {
             logger.error(e.getMessage(), e);

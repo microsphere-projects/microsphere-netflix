@@ -19,6 +19,7 @@ package io.microsphere.netflix.eureka.spring.cloud.tomcat.autoconfigure;
 
 
 import io.microsphere.netflix.eureka.spring.cloud.tomcat.sample.EurekaServerApplication;
+import org.junit.jupiter.api.Test;
 import org.springframework.context.ConfigurableApplicationContext;
 
 import java.util.concurrent.CompletionService;
@@ -40,7 +41,7 @@ import static org.springframework.boot.SpringApplication.run;
  */
 class TomcatEurekaServerReplicationAutoConfigurationTest {
 
-    // @Test
+    @Test
     void test() throws Throwable {
         int count = 2;
         ExecutorService executorService = newFixedThreadPool(count);
@@ -50,9 +51,6 @@ class TomcatEurekaServerReplicationAutoConfigurationTest {
             final int port = 12345 + i;
             completionService.submit(() -> run(EurekaServerApplication.class, "--server.port=" + port));
         }
-
-        // TODO Check the registered applications
-        // sleep(MAX_VALUE);
 
         for (int i = 0; i < count; i++) {
             Future<ConfigurableApplicationContext> future = completionService.take();
