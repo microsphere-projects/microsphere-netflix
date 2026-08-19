@@ -12,8 +12,8 @@ eureka:
     service-url:
       # Register self
       defaultZone: http://127.0.0.1:${server.port}/eureka
-    fetch-registry: true
-    registry-fetch-interval-seconds: 5
+      # Disable fetching registry from self
+    fetch-registry: false
   instance:
     instanceId: ${spring.cloud.client.ip-address}:${server.port}
 

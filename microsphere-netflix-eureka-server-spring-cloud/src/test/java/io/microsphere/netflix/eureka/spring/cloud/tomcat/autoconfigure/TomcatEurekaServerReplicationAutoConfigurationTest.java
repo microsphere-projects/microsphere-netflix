@@ -18,10 +18,12 @@
 package io.microsphere.netflix.eureka.spring.cloud.tomcat.autoconfigure;
 
 
+import com.netflix.appinfo.InstanceInfo;
+import com.netflix.discovery.shared.Application;
+import com.netflix.eureka.EurekaServerContext;
+import com.netflix.eureka.registry.PeerAwareInstanceRegistry;
 import io.microsphere.netflix.eureka.spring.cloud.tomcat.sample.EurekaServerApplication;
 import org.junit.jupiter.api.Test;
-import org.springframework.cloud.client.ServiceInstance;
-import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.context.ConfigurableApplicationContext;
 
 import java.util.List;
@@ -60,20 +62,24 @@ class TomcatEurekaServerReplicationAutoConfigurationTest {
 
         List<ConfigurableApplicationContext> contexts = newArrayList(count);
 
-        String applicationName = "eureka-server";
+        String applicationName = "eureka-server".toUpperCase();
 
         for (int i = 0; i < count; i++) {
             Future<ConfigurableApplicationContext> future = completionService.take();
             ConfigurableApplicationContext context = future.get();
             contexts.add(context);
-            DiscoveryClient discoveryClient = context.getBean(DiscoveryClient.class);
-            List<ServiceInstance> instances = emptyList();
+
+            EurekaServerContext eurekaServerContext = context.getBean(EurekaServerContext.class);
+            PeerAwareInstanceRegistry registry = eurekaServerContext.getRegistry();
+            List<InstanceInfo> instances;
+
             do {
-                instances = discoveryClient.getInstances(applicationName);
+                Application application = registry.getApplication(applicationName);
+                instances = application == null ? emptyList() : application.getInstances();
                 if (instances.size() == count) {
                     break;
                 }
-                sleep(5000L);
+                sleep(500L);
             } while (true);
         }
 
