@@ -3,7 +3,7 @@
     <property name="ENCODER_PATTERN" value="%d{yyyy-MM-dd HH:mm:ss.SSS} %X{traceId} %level %logger{0} [%t] %m%n"/>
 
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${user.dir}/eureka-server.log</file>
+        <file>${user.dir}/logs/eureka-server.log</file>
         <prudent>true</prudent>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <fileNamePattern>eureka-server.%d{yyyy-MM-dd}.log</fileNamePattern>
