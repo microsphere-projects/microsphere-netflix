@@ -16,13 +16,11 @@
  */
 package io.microsphere.netflix.eureka.server.spring.cloud.tomcat.sample;
 
-import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.builder.SpringApplicationBuilder;
-import org.springframework.boot.web.servlet.ServletComponentScan;
-import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.cloud.netflix.eureka.server.EnableEurekaServer;
 import org.springframework.scheduling.annotation.EnableScheduling;
+
+import static org.springframework.boot.SpringApplication.run;
 
 
 /**
@@ -33,16 +31,9 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableEurekaServer
 @EnableScheduling
 @EnableAutoConfiguration
-@ServletComponentScan
-public class EurekaServerApplication extends SpringBootServletInitializer {
+public class EurekaServerBootstrap {
 
     public static void main(String[] args) {
-        SpringApplication.run(EurekaServerApplication.class, args);
-    }
-
-    @Override
-    protected SpringApplicationBuilder configure(SpringApplicationBuilder builder) {
-        builder.sources(EurekaServerApplication.class);
-        return builder;
+        run(EurekaServerBootstrap.class, args);
     }
 }
