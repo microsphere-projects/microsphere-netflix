@@ -75,20 +75,12 @@
         <!-- Apache Tomcat -->
         <dependency>
             <groupId>org.apache.tomcat</groupId>
-            <artifactId>tomcat-catalina</artifactId>
-            <optional>true</optional>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.tomcat</groupId>
             <artifactId>tomcat-tribes</artifactId>
-            <optional>true</optional>
         </dependency>
 
         <dependency>
             <groupId>org.apache.tomcat</groupId>
             <artifactId>tomcat-catalina-ha</artifactId>
-            <optional>true</optional>
         </dependency>
 
         <!-- Testing -->

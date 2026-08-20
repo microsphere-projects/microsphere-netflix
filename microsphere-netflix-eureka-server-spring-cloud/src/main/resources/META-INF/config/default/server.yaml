@@ -1,0 +1,14 @@
+microsphere:
+  eureka:
+    server:
+      enabled: true
+      replication:
+        instance-name-prefix: "ReplicatedInstance-"
+        timeout: 15000
+        metadata:
+          action-key: "_action_"
+        threads:
+          number: 2
+          thread-name-prefix: "Eureka-Server-Replication-Thread-"
+      deregistration:
+        delay: 5000
