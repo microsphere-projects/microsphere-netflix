@@ -22,8 +22,9 @@ import com.netflix.appinfo.InstanceInfo;
 import com.netflix.discovery.shared.Application;
 import com.netflix.eureka.EurekaServerContext;
 import com.netflix.eureka.registry.PeerAwareInstanceRegistry;
-import io.microsphere.netflix.eureka.server.spring.cloud.tomcat.sample.EurekaServerBootstrap;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.cloud.netflix.eureka.server.EnableEurekaServer;
 import org.springframework.context.ConfigurableApplicationContext;
 
 import java.util.List;
@@ -47,6 +48,8 @@ import static org.springframework.boot.SpringApplication.run;
  * @see TomcatEurekaServerReplicationAutoConfiguration
  * @since 1.0.0
  */
+@EnableEurekaServer
+@EnableAutoConfiguration
 class TomcatEurekaServerReplicationAutoConfigurationTest {
 
     @Test
@@ -57,7 +60,7 @@ class TomcatEurekaServerReplicationAutoConfigurationTest {
         CompletionService<ConfigurableApplicationContext> completionService = new ExecutorCompletionService<>(executorService);
         for (int i = 0; i < count; i++) {
             final int port = 12345 + i;
-            completionService.submit(() -> run(EurekaServerBootstrap.class, "--server.port=" + port));
+            completionService.submit(() -> run(TomcatEurekaServerReplicationAutoConfigurationTest.class, "--server.port=" + port));
         }
 
         List<ConfigurableApplicationContext> contexts = newArrayList(count);
