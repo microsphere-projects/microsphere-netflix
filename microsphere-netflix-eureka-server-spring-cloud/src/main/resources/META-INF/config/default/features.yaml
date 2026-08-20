@@ -1,0 +1,12 @@
+microsphere:
+  spring:
+    cloud:
+      features:
+        abstract:
+          netflix-eureka-core:
+            - io.microsphere.netflix.eureka.client.CompositePreRegistrationHandler
+          netflix-eureka-client:
+            - io.microsphere.netflix.eureka.client.spring.cloud.autoconfigure.EnhancedEurekaClientAutoConfiguration
+            - io.microsphere.netflix.eureka.client.spring.cloud.autoconfigure.MultipleEurekaClientAutoConfiguration
+          netflix-eureka-server:
+            - io.microsphere.netflix.eureka.spring.cloud.tomcat.autoconfigure.TomcatEurekaServerReplicationAutoConfiguration
