@@ -188,14 +188,14 @@ public class ReplicatedInstanceListener implements ServletContextListener, Chann
                 appName, id, action, isReplication, json);
 
         switch (action) {
-            case Register:
-                register(registry, replicatedInstance, isReplication);
+            case Heartbeat:
+                renew(registry, replicatedInstance, isReplication);
                 break;
             case Cancel:
                 cancel(registry, replicatedInstance, isReplication);
                 break;
-            case Heartbeat:
-                renew(registry, replicatedInstance, isReplication);
+            default:
+                register(registry, replicatedInstance, isReplication);
                 break;
         }
         servletContext.removeAttribute(id);
@@ -245,12 +245,8 @@ public class ReplicatedInstanceListener implements ServletContextListener, Chann
 
     private CodecWrapper getCodecWrapper() {
         EurekaServerContext eurekaServerContext = getEurekaServerContext();
-        CodecWrapper codecWrapper = null;
-        if (eurekaServerContext != null) {
-            ServerCodecs serverCodecs = eurekaServerContext.getServerCodecs();
-            codecWrapper = serverCodecs.getFullJsonCodec();
-        }
-        return codecWrapper;
+        ServerCodecs serverCodecs = eurekaServerContext.getServerCodecs();
+        return serverCodecs.getFullJsonCodec();
     }
 
     @Nonnull
