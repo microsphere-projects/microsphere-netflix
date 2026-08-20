@@ -1,9 +1,9 @@
 spring:
   application:
-    name: eureka-server
+    name: microsphere-eureka-server
 
 server:
-  port: 12345 # Eureka Port
+  port: 8080 # Eureka Port
   shutdown: GRACEFUL
 
 # Eureka Client
@@ -18,18 +18,6 @@ eureka:
     instanceId: ${spring.cloud.client.ip-address}:${server.port}
 
 management:
-  endpoints:
-    enabled-by-default: true
-    web:
-      exposure:
-        include: '*'
-    jmx:
-      exposure:
-        include: '*'
   metrics:
     tags:
       application: ${spring.application.name}
-  endpoint:
-    health:
-      show-details: always
-      show-components: always
