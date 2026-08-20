@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: microsphere-eureka-server
+
+server:
+  port: 8080 # Eureka Port
+  shutdown: GRACEFUL
+
+# Eureka Client
+eureka:
+  client:
+    service-url:
+      # Register self
+      defaultZone: http://127.0.0.1:${server.port}/eureka
+      # Disable fetching registry from self
+    fetch-registry: false
+  instance:
+    instanceId: ${spring.cloud.client.ip-address}:${server.port}
+
+management:
+  metrics:
+    tags:
+      application: ${spring.application.name}
