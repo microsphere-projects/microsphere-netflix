@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.microsphere.netflix.eureka.spring.cloud.tomcat.sample;
+package io.microsphere.netflix.eureka.server.spring.cloud.tomcat.sample;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;

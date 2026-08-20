@@ -63,6 +63,7 @@
         <module>microsphere-netflix-eureka-client</module>
         <module>microsphere-netflix-eureka-client-spring-cloud</module>
         <module>microsphere-netflix-eureka-server-spring-cloud</module>
+        <module>microsphere-netflix-eureka-server</module>
     </modules>
 
 </project>

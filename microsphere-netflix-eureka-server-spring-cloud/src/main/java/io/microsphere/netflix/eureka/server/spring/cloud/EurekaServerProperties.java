@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package io.microsphere.netflix.eureka.spring.cloud;
+package io.microsphere.netflix.eureka.server.spring.cloud;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 

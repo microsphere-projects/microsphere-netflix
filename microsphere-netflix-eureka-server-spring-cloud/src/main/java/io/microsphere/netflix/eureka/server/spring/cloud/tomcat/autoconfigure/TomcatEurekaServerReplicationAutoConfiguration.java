@@ -14,14 +14,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.microsphere.netflix.eureka.spring.cloud.tomcat.autoconfigure;
+package io.microsphere.netflix.eureka.server.spring.cloud.tomcat.autoconfigure;
 
 import com.netflix.eureka.EurekaServerContext;
 import io.microsphere.annotation.Nonnull;
 import io.microsphere.logging.Logger;
-import io.microsphere.netflix.eureka.spring.cloud.EurekaServerProperties;
-import io.microsphere.netflix.eureka.spring.cloud.tomcat.servlet.listener.EurekaServerListener;
-import io.microsphere.netflix.eureka.spring.cloud.tomcat.servlet.listener.ReplicatedInstanceListener;
+import io.microsphere.netflix.eureka.server.spring.cloud.EurekaServerProperties;
+import io.microsphere.netflix.eureka.server.spring.cloud.tomcat.servlet.listener.EurekaServerListener;
+import io.microsphere.netflix.eureka.server.spring.cloud.tomcat.servlet.listener.ReplicatedInstanceListener;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletContextAttributeEvent;
 import jakarta.servlet.ServletContextAttributeListener;

@@ -1,0 +1,35 @@
+spring:
+  application:
+    name: eureka-server
+
+server:
+  port: 12345 # Eureka Port
+  shutdown: GRACEFUL
+
+# Eureka Client
+eureka:
+  client:
+    service-url:
+      # Register self
+      defaultZone: http://127.0.0.1:${server.port}/eureka
+      # Disable fetching registry from self
+    fetch-registry: false
+  instance:
+    instanceId: ${spring.cloud.client.ip-address}:${server.port}
+
+management:
+  endpoints:
+    enabled-by-default: true
+    web:
+      exposure:
+        include: '*'
+    jmx:
+      exposure:
+        include: '*'
+  metrics:
+    tags:
+      application: ${spring.application.name}
+  endpoint:
+    health:
+      show-details: always
+      show-components: always

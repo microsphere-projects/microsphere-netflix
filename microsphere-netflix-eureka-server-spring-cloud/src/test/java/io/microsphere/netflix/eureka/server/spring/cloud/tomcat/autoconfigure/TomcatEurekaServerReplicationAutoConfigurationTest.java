@@ -15,14 +15,14 @@
  * limitations under the License.
  */
 
-package io.microsphere.netflix.eureka.spring.cloud.tomcat.autoconfigure;
+package io.microsphere.netflix.eureka.server.spring.cloud.tomcat.autoconfigure;
 
 
 import com.netflix.appinfo.InstanceInfo;
 import com.netflix.discovery.shared.Application;
 import com.netflix.eureka.EurekaServerContext;
 import com.netflix.eureka.registry.PeerAwareInstanceRegistry;
-import io.microsphere.netflix.eureka.spring.cloud.tomcat.sample.EurekaServerApplication;
+import io.microsphere.netflix.eureka.server.spring.cloud.tomcat.sample.EurekaServerApplication;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.ConfigurableApplicationContext;
 

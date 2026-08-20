@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.microsphere.netflix.eureka.spring.cloud.tomcat.servlet.listener;
+package io.microsphere.netflix.eureka.server.spring.cloud.tomcat.servlet.listener;
 
 import com.netflix.appinfo.EurekaInstanceConfig;
 import com.netflix.appinfo.InstanceInfo;
@@ -24,7 +24,7 @@ import com.netflix.eureka.registry.PeerAwareInstanceRegistry;
 import com.netflix.eureka.registry.PeerAwareInstanceRegistryImpl.Action;
 import com.netflix.eureka.resources.ServerCodecs;
 import io.microsphere.logging.Logger;
-import io.microsphere.netflix.eureka.spring.cloud.EurekaServerProperties;
+import io.microsphere.netflix.eureka.server.spring.cloud.EurekaServerProperties;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletContextEvent;
 import jakarta.servlet.ServletContextListener;
