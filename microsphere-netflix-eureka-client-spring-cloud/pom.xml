@@ -78,6 +78,7 @@
             <optional>true</optional>
         </dependency>
 
+        <!-- Spring Boot Configuration Processor -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-configuration-processor</artifactId>
