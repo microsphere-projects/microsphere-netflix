@@ -11,11 +11,11 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>io.github.microsphere-projects</groupId>
-    <artifactId>microsphere-netflix-eureka-client-core</artifactId>
+    <artifactId>microsphere-netflix-eureka-client</artifactId>
     <version>${revision}</version>
 
-    <name>Microsphere :: Netflix :: Eureka Client :: Core</name>
-    <description>Microsphere Netflix Eureka Client Core</description>
+    <name>Microsphere :: Netflix :: Eureka Client</name>
+    <description>Microsphere Netflix Eureka Client</description>
 
     <dependencies>
 
