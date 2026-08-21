@@ -24,8 +24,10 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * {@link CompositePreRegistrationHandler} Test
@@ -45,12 +47,16 @@ class CompositePreRegistrationHandlerTest {
 
     @Test
     void test() {
+        assertDoesNotThrow(this.handler::beforeRegistration);
+        List<PreRegistrationHandler> preRegistrationHandlers = this.handler.getPreRegistrationHandlers();
+        assertTrue(preRegistrationHandlers.isEmpty());
+
         PreRegistrationHandler preRegistrationHandler = () -> {
             throw new UnsupportedOperationException("For testing");
         };
         assertSame(this.handler, this.handler.add(preRegistrationHandler));
 
-        List<PreRegistrationHandler> preRegistrationHandlers = this.handler.getPreRegistrationHandlers();
+        preRegistrationHandlers = this.handler.getPreRegistrationHandlers();
         assertSame(preRegistrationHandlers.get(0), preRegistrationHandler);
         assertThrows(UnsupportedOperationException.class, this.handler::beforeRegistration);
     }
