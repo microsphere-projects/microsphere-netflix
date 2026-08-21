@@ -51,13 +51,20 @@ class CompositePreRegistrationHandlerTest {
         List<PreRegistrationHandler> preRegistrationHandlers = this.handler.getPreRegistrationHandlers();
         assertTrue(preRegistrationHandlers.isEmpty());
 
-        PreRegistrationHandler preRegistrationHandler = () -> {
+        PreRegistrationHandler handler = () -> {
+        };
+
+        assertSame(this.handler, this.handler.add(handler));
+        assertDoesNotThrow(this.handler::beforeRegistration);
+
+        PreRegistrationHandler errorHandler = () -> {
             throw new UnsupportedOperationException("For testing");
         };
-        assertSame(this.handler, this.handler.add(preRegistrationHandler));
+        assertSame(this.handler, this.handler.add(errorHandler));
+        assertThrows(UnsupportedOperationException.class, this.handler::beforeRegistration);
 
         preRegistrationHandlers = this.handler.getPreRegistrationHandlers();
-        assertSame(preRegistrationHandlers.get(0), preRegistrationHandler);
-        assertThrows(UnsupportedOperationException.class, this.handler::beforeRegistration);
+        assertSame(preRegistrationHandlers.get(0), handler);
+        assertSame(preRegistrationHandlers.get(1), errorHandler);
     }
 }
