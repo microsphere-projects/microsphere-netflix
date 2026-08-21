@@ -35,6 +35,8 @@ import java.util.Map;
  * Auto-Configuration Class to enhance {@link EurekaClient}
  *
  * @author <a href="mailto:mercyblitz@gmail.com">Mercy</a>
+ * @see org.springframework.cloud.netflix.eureka.EurekaClientAutoConfiguration
+ * @see org.springframework.cloud.netflix.eureka.config.DiscoveryClientOptionalArgsConfiguration
  * @since 1.0.0
  */
 @Configuration(proxyBeanMethods = false)
@@ -53,9 +55,6 @@ public class EnhancedEurekaClientAutoConfiguration {
             registration = ((MultipleRegistration) registration).special(EurekaRegistration.class);
         }
 
-        if (registration == null)
-            return;
-
         if (registration instanceof EurekaRegistration) {
             EurekaRegistration eurekaRegistration = (EurekaRegistration) registration;
             ApplicationInfoManager applicationInfoManager = eurekaRegistration.getApplicationInfoManager();
@@ -65,5 +64,4 @@ public class EnhancedEurekaClientAutoConfiguration {
             instanceInfo.getMetadata().putAll(metadata);
         }
     }
-
 }
