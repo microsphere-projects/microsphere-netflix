@@ -19,16 +19,21 @@ package io.microsphere.netflix.eureka.client.spring.cloud.autoconfigure;
 import com.netflix.appinfo.HealthCheckHandler;
 import com.netflix.discovery.CacheRefreshedEvent;
 import com.netflix.discovery.PreRegistrationHandler;
+import io.microsphere.spring.cloud.client.service.registry.DefaultRegistration;
+import io.microsphere.spring.cloud.client.service.registry.MultipleRegistration;
+import io.microsphere.spring.cloud.client.service.registry.event.RegistrationPreRegisteredEvent;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.client.serviceregistry.Registration;
+import org.springframework.cloud.client.serviceregistry.ServiceRegistry;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.event.EventListener;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static io.microsphere.collection.Lists.ofList;
 import static java.lang.Thread.sleep;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -61,6 +66,12 @@ public class EnhancedEurekaClientAutoConfigurationTest {
     @Autowired
     private Registration registration;
 
+    @Autowired
+    private ServiceRegistry registry;
+
+    @Autowired
+    private EnhancedEurekaClientAutoConfiguration enhancedEurekaClientAutoConfiguration;
+
     static class Config {
         @Bean
         public PreRegistrationHandler preRegistrationHandler() {
@@ -82,6 +93,11 @@ public class EnhancedEurekaClientAutoConfigurationTest {
 
     @Test
     public void test() throws Throwable {
+        enhancedEurekaClientAutoConfiguration.onRegistrationPreRegisteredEvent(new RegistrationPreRegisteredEvent(this.registry, this.registration));
+
+        MultipleRegistration multipleRegistration = new MultipleRegistration(ofList(new DefaultRegistration()));
+        enhancedEurekaClientAutoConfiguration.onRegistrationPreRegisteredEvent(new RegistrationPreRegisteredEvent(this.registry, multipleRegistration));
+
         registration.getMetadata().put("key", "value");
         sleep(SECONDS.toMillis(1));
         assertTrue(preRegistered.get());
