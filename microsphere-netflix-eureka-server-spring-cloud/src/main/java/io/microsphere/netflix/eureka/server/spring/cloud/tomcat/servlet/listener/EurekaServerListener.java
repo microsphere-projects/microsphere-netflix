@@ -73,8 +73,8 @@ public class EurekaServerListener implements ServletContextListener, DisposableB
     public EurekaServerListener(EurekaServerContext eurekaServerContext, EurekaInstanceConfig eurekaInstanceConfig,
                                 EurekaServerProperties eurekaServerProperties) {
         this.eurekaInstanceConfig = eurekaInstanceConfig;
-        this.codecWrapper = this.initCodecWrapper(eurekaServerContext);
-        this.registry = this.initPeerAwareInstanceRegistry(eurekaServerContext);
+        this.codecWrapper = getCodecWrapper(eurekaServerContext);
+        this.registry = getPeerAwareInstanceRegistry(eurekaServerContext);
         this.instanceNamePrefix = eurekaServerProperties.getInstanceNamePrefix();
         this.actionMetadataKey = eurekaServerProperties.getActionKey();
         this.deregistionDelay = eurekaServerProperties.getDeregistrationDelay();
@@ -148,16 +148,16 @@ public class EurekaServerListener implements ServletContextListener, DisposableB
         replicateInstance(instance, Heartbeat);
     }
 
-    private CodecWrapper initCodecWrapper(EurekaServerContext eurekaServerContext) {
+    static CodecWrapper getCodecWrapper(EurekaServerContext eurekaServerContext) {
         ServerCodecs serverCodecs = eurekaServerContext.getServerCodecs();
         CodecWrapper codecWrapper = serverCodecs.getFullJsonCodec();
-        logger.info("The CodecWrapper has been initialized");
+        logger.info("The CodecWrapper was gotten : {}", codecWrapper);
         return codecWrapper;
     }
 
-    private PeerAwareInstanceRegistry initPeerAwareInstanceRegistry(EurekaServerContext eurekaServerContext) {
+    static PeerAwareInstanceRegistry getPeerAwareInstanceRegistry(EurekaServerContext eurekaServerContext) {
         PeerAwareInstanceRegistry registry = eurekaServerContext.getRegistry();
-        logger.info("The PeerAwareInstanceRegistry has been initialized");
+        logger.info("The PeerAwareInstanceRegistry was gotten : {}", registry);
         return registry;
     }
 

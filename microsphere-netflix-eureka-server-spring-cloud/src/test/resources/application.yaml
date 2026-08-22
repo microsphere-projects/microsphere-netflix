@@ -33,3 +33,10 @@ management:
     health:
       show-details: always
       show-components: always
+
+
+microsphere:
+  eureka:
+    server:
+      deregistration:
+        delay: 500
