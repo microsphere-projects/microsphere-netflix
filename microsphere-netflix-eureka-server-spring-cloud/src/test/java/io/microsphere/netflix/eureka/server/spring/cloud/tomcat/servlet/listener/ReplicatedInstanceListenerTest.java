@@ -45,7 +45,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
  */
 class ReplicatedInstanceListenerTest extends EurekaServerTest {
 
-    // @Test
+    @Test
     void test() throws Throwable {
         ReplicatedInstanceListener listener = get(this.servletContext);
 

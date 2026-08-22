@@ -24,6 +24,7 @@ import org.junit.jupiter.api.Test;
 import java.util.Map;
 
 import static io.microsphere.collection.Maps.ofMap;
+import static io.microsphere.util.ArrayUtils.ofArray;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -44,8 +45,8 @@ class EurekaServerListenerTest extends EurekaServerTest {
     }
 
     @Override
-    protected Map<String, Object> getDefaultProperties() {
-        return ofMap("server.port", "12346");
+    protected String[] getOptions() {
+        return ofArray("--server.port=23456");
     }
 
     @Test
