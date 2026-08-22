@@ -24,7 +24,6 @@ import com.netflix.eureka.EurekaServerConfig;
 import com.netflix.eureka.EurekaServerContext;
 import com.netflix.eureka.registry.PeerAwareInstanceRegistry;
 import com.netflix.eureka.registry.PeerAwareInstanceRegistryImpl.Action;
-import com.netflix.eureka.resources.ServerCodecs;
 import io.microsphere.annotation.Nonnull;
 import io.microsphere.annotation.Nullable;
 import io.microsphere.logging.Logger;
@@ -47,6 +46,7 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import static com.netflix.eureka.registry.PeerAwareInstanceRegistryImpl.Action.Register;
 import static com.netflix.eureka.registry.PeerAwareInstanceRegistryImpl.Action.valueOf;
 import static io.microsphere.logging.LoggerFactory.getLogger;
+import static io.microsphere.netflix.eureka.server.spring.cloud.tomcat.servlet.listener.EurekaServerListener.getCodecWrapper;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.apache.catalina.tribes.tipis.AbstractReplicatedMap.MapMessage.MSG_COPY;
 
@@ -69,9 +69,13 @@ public class ReplicatedInstanceListener implements ServletContextListener, Chann
 
     private static final Logger logger = getLogger(ReplicatedInstanceListener.class);
 
+    private static final String ATTRIBUTE_NAME = ReplicatedInstanceListener.class.getName();
+
     private final EurekaServerContext eurekaServerContext;
 
     private final EurekaServerProperties eurekaServerProperties;
+
+    private final CodecWrapper codecWrapper;
 
     private final ScheduledThreadPoolExecutor scheduledThreadPoolExecutor;
 
@@ -80,6 +84,7 @@ public class ReplicatedInstanceListener implements ServletContextListener, Chann
     public ReplicatedInstanceListener(EurekaServerContext eurekaServerContext, EurekaServerProperties eurekaServerProperties) {
         this.eurekaServerContext = eurekaServerContext;
         this.eurekaServerProperties = eurekaServerProperties;
+        this.codecWrapper = getCodecWrapper(eurekaServerContext);
         this.scheduledThreadPoolExecutor = newScheduledThreadPoolExecutor();
     }
 
@@ -95,6 +100,7 @@ public class ReplicatedInstanceListener implements ServletContextListener, Chann
     public void contextInitialized(ServletContextEvent event) {
         this.scheduledThreadPoolExecutor.prestartCoreThread();
         this.servletContext = event.getServletContext();
+        this.servletContext.setAttribute(ATTRIBUTE_NAME, this);
         processRegisteredInstancesOnSchedule();
     }
 
@@ -103,20 +109,23 @@ public class ReplicatedInstanceListener implements ServletContextListener, Chann
         EurekaServerConfig serverConfig = eurekaServerContext.getServerConfig();
         // the value of period is 1/3 of the peer eureka status refresh time interval, whose default value is 10 seconds
         long period = serverConfig.getPeerEurekaStatusRefreshTimeIntervalMs() / 3;
-        this.scheduledThreadPoolExecutor.scheduleAtFixedRate(this::processRegisteredInstances, 0, period, MILLISECONDS);
+        this.scheduledThreadPoolExecutor.prestartAllCoreThreads();
+        this.scheduledThreadPoolExecutor.scheduleAtFixedRate(this::processRegisteredInstancesAsync, 0, period, MILLISECONDS);
     }
 
-    private void processRegisteredInstances() {
-        async(() -> {
-            PeerAwareInstanceRegistry registry = getRegistry();
-            Applications applications = registry.getApplications();
-            List<Application> registeredApplications = applications.getRegisteredApplications();
-            for (Application application : registeredApplications) {
-                for (InstanceInfo registeredInstance : application.getInstances()) {
-                    process(registeredInstance, null);
-                }
+    private void processRegisteredInstancesAsync() {
+        async(this::processRegisteredInstances);
+    }
+
+    void processRegisteredInstances() {
+        PeerAwareInstanceRegistry registry = getRegistry();
+        Applications applications = registry.getApplications();
+        List<Application> registeredApplications = applications.getRegisteredApplications();
+        for (Application application : registeredApplications) {
+            for (InstanceInfo registeredInstance : application.getInstances()) {
+                process(registeredInstance, null);
             }
-        });
+        }
     }
 
     @Override
@@ -151,14 +160,8 @@ public class ReplicatedInstanceListener implements ServletContextListener, Chann
         }
     }
 
-    private InstanceInfo decodeReplicatedInstance(String json) throws IOException {
-        CodecWrapper codecWrapper = getCodecWrapper();
-        return codecWrapper.decode(json, InstanceInfo.class);
-    }
-
-    @FunctionalInterface
-    private interface Task {
-        void execute() throws Exception;
+    InstanceInfo decodeReplicatedInstance(String json) throws IOException {
+        return this.codecWrapper.decode(json, InstanceInfo.class);
     }
 
     private void async(Task task) {
@@ -172,14 +175,18 @@ public class ReplicatedInstanceListener implements ServletContextListener, Chann
         return name.startsWith(this.eurekaServerProperties.getInstanceNamePrefix());
     }
 
-    private void process(String json) throws IOException {
+    void process(String json) throws IOException {
         InstanceInfo replicatedInstance = decodeReplicatedInstance(json);
         process(replicatedInstance, json);
     }
 
-    private void process(InstanceInfo replicatedInstance, @Nullable String json) {
-        PeerAwareInstanceRegistry registry = getRegistry();
+    void process(InstanceInfo replicatedInstance, @Nullable String json) {
         Action action = getAction(replicatedInstance);
+        process(replicatedInstance, action, json);
+    }
+
+    private void process(InstanceInfo replicatedInstance, Action action, @Nullable String json) {
+        PeerAwareInstanceRegistry registry = getRegistry();
         String appName = replicatedInstance.getAppName();
         String id = replicatedInstance.getId();
         boolean isReplication = json != null;
@@ -243,19 +250,29 @@ public class ReplicatedInstanceListener implements ServletContextListener, Chann
         return msg instanceof MapMessage;
     }
 
-    private CodecWrapper getCodecWrapper() {
-        EurekaServerContext eurekaServerContext = getEurekaServerContext();
-        ServerCodecs serverCodecs = eurekaServerContext.getServerCodecs();
-        return serverCodecs.getFullJsonCodec();
-    }
-
     @Nonnull
-    private PeerAwareInstanceRegistry getRegistry() {
+    PeerAwareInstanceRegistry getRegistry() {
         return getEurekaServerContext().getRegistry();
     }
 
     @Nonnull
-    private EurekaServerContext getEurekaServerContext() {
+    EurekaServerContext getEurekaServerContext() {
         return this.eurekaServerContext;
+    }
+
+    /**
+     * Get the {@link ReplicatedInstanceListener} from the {@link ServletContext}
+     *
+     * @param servletContext the {@link ServletContext}
+     * @return the {@link ReplicatedInstanceListener} if found, or {@code null} if not found
+     */
+    @Nullable
+    public static ReplicatedInstanceListener get(ServletContext servletContext) {
+        return (ReplicatedInstanceListener) servletContext.getAttribute(ATTRIBUTE_NAME);
+    }
+
+    @FunctionalInterface
+    interface Task {
+        void execute() throws Exception;
     }
 }
