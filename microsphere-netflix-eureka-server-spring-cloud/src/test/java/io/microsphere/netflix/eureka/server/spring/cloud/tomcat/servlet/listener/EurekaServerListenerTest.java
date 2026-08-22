@@ -18,22 +18,11 @@
 package io.microsphere.netflix.eureka.server.spring.cloud.tomcat.servlet.listener;
 
 
-import com.netflix.appinfo.ApplicationInfoManager;
-import com.netflix.appinfo.InstanceInfo;
-import com.netflix.eureka.registry.PeerAwareInstanceRegistry;
-import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletContextEvent;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.netflix.eureka.server.EnableEurekaServer;
-import org.springframework.cloud.netflix.eureka.serviceregistry.EurekaRegistration;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 /**
  * {@link EurekaServerListener} Test
@@ -42,39 +31,13 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
  * @see EurekaServerListener
  * @since 1.0.0
  */
-@SpringBootTest(
-        classes = {
-                EurekaServerListenerTest.class
-        },
-        properties = {
-                "microsphere.eureka.server.deregistration.delay=500"
-        },
-        webEnvironment = RANDOM_PORT
-)
-@EnableEurekaServer
-@EnableAutoConfiguration
-class EurekaServerListenerTest {
+class EurekaServerListenerTest extends EurekaServerTest {
 
-    @Autowired
-    private EurekaRegistration eurekaRegistration;
-
-    @Autowired
-    private PeerAwareInstanceRegistry registry;
-
-    @Autowired
     private EurekaServerListener eurekaServerListener;
 
-    @Autowired
-    private ServletContext servletContext;
-
-    private ApplicationInfoManager applicationInfoManager;
-
-    private InstanceInfo instanceInfo;
-
-    @BeforeEach
-    void setUp() {
-        this.applicationInfoManager = this.eurekaRegistration.getApplicationInfoManager();
-        this.instanceInfo = this.applicationInfoManager.getInfo();
+    @Override
+    protected void init() {
+        this.eurekaServerListener = this.webApplicationContext.getBean(EurekaServerListener.class);
     }
 
     @Test
