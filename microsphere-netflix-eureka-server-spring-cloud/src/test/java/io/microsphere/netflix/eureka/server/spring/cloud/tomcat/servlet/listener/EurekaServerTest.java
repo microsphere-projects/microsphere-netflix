@@ -34,6 +34,9 @@ import org.springframework.cloud.netflix.eureka.server.EurekaServerMarkerConfigu
 import org.springframework.cloud.netflix.eureka.serviceregistry.EurekaRegistration;
 import org.springframework.web.context.ConfigurableWebApplicationContext;
 
+import java.util.Map;
+
+import static java.util.Collections.emptyMap;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.boot.Banner.Mode.OFF;
 import static org.springframework.boot.WebApplicationType.SERVLET;
@@ -73,7 +76,8 @@ public abstract class EurekaServerTest {
                 .sources(EurekaServerMarkerConfiguration.class) // The Configuration class was imported by @EnableEurekaServer
                 .web(SERVLET)
                 .bannerMode(OFF)
-                .headless(true);
+                .headless(true)
+                .properties(getDefaultProperties());
 
         this.webApplicationContext = (ConfigurableWebApplicationContext) builder.run();
         this.eurekaServerContext = this.webApplicationContext.getBean(EurekaServerContext.class);
@@ -94,6 +98,10 @@ public abstract class EurekaServerTest {
     }
 
     protected void init() throws Throwable {
+    }
+
+    protected Map<String, Object> getDefaultProperties() {
+        return emptyMap();
     }
 
     private void destroy() throws Throwable {

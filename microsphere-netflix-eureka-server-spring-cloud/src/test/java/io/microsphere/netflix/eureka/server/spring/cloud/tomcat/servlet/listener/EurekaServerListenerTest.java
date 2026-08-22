@@ -21,6 +21,9 @@ package io.microsphere.netflix.eureka.server.spring.cloud.tomcat.servlet.listene
 import jakarta.servlet.ServletContextEvent;
 import org.junit.jupiter.api.Test;
 
+import java.util.Map;
+
+import static io.microsphere.collection.Maps.ofMap;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -38,6 +41,11 @@ class EurekaServerListenerTest extends EurekaServerTest {
     @Override
     protected void init() {
         this.eurekaServerListener = this.webApplicationContext.getBean(EurekaServerListener.class);
+    }
+
+    @Override
+    protected Map<String, Object> getDefaultProperties() {
+        return ofMap("server.port", "12346");
     }
 
     @Test
