@@ -37,8 +37,9 @@ import org.springframework.web.context.ConfigurableWebApplicationContext;
 import java.util.Map;
 
 import static java.util.Collections.emptyMap;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.boot.Banner.Mode.OFF;
+import static org.springframework.boot.SpringApplication.exit;
 import static org.springframework.boot.WebApplicationType.SERVLET;
 
 /**
@@ -93,8 +94,7 @@ public abstract class EurekaServerTest {
     @AfterEach
     void tearDown() throws Throwable {
         destroy();
-        this.webApplicationContext.close();
-        assertTrue(this.webApplicationContext.isClosed());
+        assertEquals(0, exit(this.webApplicationContext));
     }
 
     protected void init() throws Throwable {
