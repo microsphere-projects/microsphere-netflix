@@ -36,6 +36,7 @@ import org.springframework.web.context.ConfigurableWebApplicationContext;
 
 import java.util.Map;
 
+import static io.microsphere.util.ArrayUtils.EMPTY_STRING_ARRAY;
 import static java.util.Collections.emptyMap;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.boot.Banner.Mode.OFF;
@@ -80,7 +81,7 @@ public abstract class EurekaServerTest {
                 .headless(true)
                 .properties(getDefaultProperties());
 
-        this.webApplicationContext = (ConfigurableWebApplicationContext) builder.run();
+        this.webApplicationContext = (ConfigurableWebApplicationContext) builder.run(getOptions());
         this.eurekaServerContext = this.webApplicationContext.getBean(EurekaServerContext.class);
         this.eurekaServerProperties = this.webApplicationContext.getBean(EurekaServerProperties.class);
         this.servletContext = this.webApplicationContext.getServletContext();
@@ -104,7 +105,10 @@ public abstract class EurekaServerTest {
         return emptyMap();
     }
 
-    private void destroy() throws Throwable {
+    protected String[] getOptions() {
+        return EMPTY_STRING_ARRAY;
     }
 
+    protected void destroy() throws Throwable {
+    }
 }
