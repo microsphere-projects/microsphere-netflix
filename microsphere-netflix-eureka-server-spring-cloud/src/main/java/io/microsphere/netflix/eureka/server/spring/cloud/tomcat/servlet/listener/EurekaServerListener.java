@@ -68,7 +68,7 @@ public class EurekaServerListener implements ServletContextListener, DisposableB
 
     private final long deregistionDelay;
 
-    private volatile boolean deregistered = false;
+    volatile boolean deregistered = false;
 
     public EurekaServerListener(EurekaServerContext eurekaServerContext, EurekaInstanceConfig eurekaInstanceConfig,
                                 EurekaServerProperties eurekaServerProperties) {
@@ -87,7 +87,7 @@ public class EurekaServerListener implements ServletContextListener, DisposableB
 
     @Override
     public void contextDestroyed(ServletContextEvent event) {
-        deregister();
+        destroy();
     }
 
     @Override
