@@ -49,6 +49,16 @@ class ReplicatedInstanceListenerTest extends EurekaServerTest {
     void test() throws Throwable {
         ReplicatedInstanceListener listener = get(this.servletContext);
 
+        // test processRegisteredInstances method
+        testProcessRegisteredInstances(listener);
+
+        // test process method
+        testProcess(listener, Heartbeat);
+        testProcess(listener, Cancel);
+        testProcess(listener, Register);
+    }
+
+    private void testProcessRegisteredInstances(ReplicatedInstanceListener listener) throws InterruptedException {
         PeerAwareInstanceRegistry registry = listener.getRegistry();
         Applications applications = registry.getApplications();
         while (applications.size() == 0) {
@@ -56,13 +66,7 @@ class ReplicatedInstanceListenerTest extends EurekaServerTest {
             sleep(100);
             applications = registry.getApplications();
         }
-
         assertDoesNotThrow(listener::processRegisteredInstances);
-
-        // test process
-        testProcess(listener, Heartbeat);
-        testProcess(listener, Cancel);
-        testProcess(listener, Register);
     }
 
     void testProcess(ReplicatedInstanceListener listener, PeerAwareInstanceRegistryImpl.Action action) throws IOException {

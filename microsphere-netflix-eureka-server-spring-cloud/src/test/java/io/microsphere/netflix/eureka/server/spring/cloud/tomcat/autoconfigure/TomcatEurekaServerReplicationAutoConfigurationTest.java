@@ -59,7 +59,7 @@ class TomcatEurekaServerReplicationAutoConfigurationTest {
 
         CompletionService<ConfigurableApplicationContext> completionService = new ExecutorCompletionService<>(executorService);
         for (int i = 0; i < count; i++) {
-            final int port = 12345 + i;
+            final int port = 10000 + i;
             completionService.submit(() -> run(TomcatEurekaServerReplicationAutoConfigurationTest.class, "--server.port=" + port));
         }
 
