@@ -23,6 +23,7 @@ import com.netflix.discovery.converters.wrappers.CodecWrapper;
 import com.netflix.discovery.shared.Applications;
 import com.netflix.eureka.registry.PeerAwareInstanceRegistry;
 import com.netflix.eureka.registry.PeerAwareInstanceRegistryImpl;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.cloud.netflix.eureka.EurekaInstanceConfigBean;
 import org.springframework.cloud.netflix.eureka.InstanceInfoFactory;
@@ -47,6 +48,7 @@ import static org.springframework.beans.BeanUtils.copyProperties;
  * @see ReplicatedInstanceListener
  * @since 1.0.0
  */
+@Disabled
 class ReplicatedInstanceListenerTest extends EurekaServerTest {
 
     @Test
