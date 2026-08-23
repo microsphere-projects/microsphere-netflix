@@ -251,12 +251,12 @@ public class ReplicatedInstanceListener implements ServletContextListener, Chann
     }
 
     @Nonnull
-    PeerAwareInstanceRegistry getRegistry() {
+    public PeerAwareInstanceRegistry getRegistry() {
         return getEurekaServerContext().getRegistry();
     }
 
     @Nonnull
-    EurekaServerContext getEurekaServerContext() {
+    public EurekaServerContext getEurekaServerContext() {
         return this.eurekaServerContext;
     }
 
