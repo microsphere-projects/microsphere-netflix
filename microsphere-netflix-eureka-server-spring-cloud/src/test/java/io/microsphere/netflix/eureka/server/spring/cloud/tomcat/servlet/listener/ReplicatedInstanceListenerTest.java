@@ -18,17 +18,13 @@
 package io.microsphere.netflix.eureka.server.spring.cloud.tomcat.servlet.listener;
 
 
-import com.netflix.appinfo.ApplicationInfoManager;
 import com.netflix.appinfo.InstanceInfo;
 import com.netflix.discovery.converters.wrappers.CodecWrapper;
 import com.netflix.discovery.shared.Applications;
-import com.netflix.eureka.EurekaServerContext;
 import com.netflix.eureka.registry.PeerAwareInstanceRegistry;
 import com.netflix.eureka.registry.PeerAwareInstanceRegistryImpl;
 import io.microsphere.netflix.eureka.server.spring.cloud.EurekaServerProperties;
-import jakarta.servlet.ServletContext;
-import org.springframework.cloud.netflix.eureka.serviceregistry.EurekaRegistration;
-import org.springframework.web.context.WebApplicationContext;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.Map;
@@ -50,36 +46,22 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
  * @see ReplicatedInstanceListener
  * @since 1.0.0
  */
-public class ReplicatedInstanceListenerTest extends EurekaServerTest {
+class ReplicatedInstanceListenerTest extends EurekaServerTest {
 
-    // @Test
+    @Test
     void test() throws Throwable {
         ReplicatedInstanceListener listener = get(this.servletContext);
 
         // test processRegisteredInstances method
-        testProcessRegisteredInstances(this.webApplicationContext);
+        testProcessRegisteredInstances(listener);
 
         // test process method
-        testProcess(this.webApplicationContext, Register);
-        testProcess(this.webApplicationContext, Heartbeat);
-        testProcess(this.webApplicationContext, Cancel);
+        testProcess(listener, Register);
+        testProcess(listener, Heartbeat);
+        testProcess(listener, Cancel);
     }
 
-    public static void testReplicatedInstanceListener(WebApplicationContext context) throws Throwable {
-        // test processRegisteredInstances method
-        testProcessRegisteredInstances(context);
-
-        // test process method
-        testProcess(context, Heartbeat);
-        testProcess(context, Cancel);
-        testProcess(context, Register);
-    }
-
-    static void testProcessRegisteredInstances(WebApplicationContext context) throws InterruptedException {
-        ServletContext servletContext = context.getServletContext();
-
-        ReplicatedInstanceListener listener = get(servletContext);
-
+    void testProcessRegisteredInstances(ReplicatedInstanceListener listener) throws InterruptedException {
         PeerAwareInstanceRegistry registry = listener.getRegistry();
         Applications applications = registry.getApplications();
         while (applications.size() == 0) {
@@ -90,19 +72,11 @@ public class ReplicatedInstanceListenerTest extends EurekaServerTest {
         assertDoesNotThrow(listener::processRegisteredInstances);
     }
 
-    static void testProcess(WebApplicationContext context, PeerAwareInstanceRegistryImpl.Action action) throws IOException {
-        ServletContext servletContext = context.getServletContext();
-        ReplicatedInstanceListener listener = get(servletContext);
+    void testProcess(ReplicatedInstanceListener listener, PeerAwareInstanceRegistryImpl.Action action) throws IOException {
+        EurekaServerProperties eurekaServerProperties = super.webApplicationContext.getBean(EurekaServerProperties.class);
 
-        EurekaServerContext eurekaServerContext = context.getBean(EurekaServerContext.class);
-        EurekaServerProperties eurekaServerProperties = context.getBean(EurekaServerProperties.class);
-
-        EurekaRegistration eurekaRegistration = context.getBean(EurekaRegistration.class);
-        ApplicationInfoManager applicationInfoManager = eurekaRegistration.getApplicationInfoManager();
-        InstanceInfo instanceInfo = applicationInfoManager.getInfo();
-
-        CodecWrapper codecWrapper = getCodecWrapper(eurekaServerContext);
-        InstanceInfo clonedInstanceInfo = new InstanceInfo(instanceInfo);
+        CodecWrapper codecWrapper = getCodecWrapper(super.eurekaServerContext);
+        InstanceInfo clonedInstanceInfo = new InstanceInfo(super.instanceInfo);
         setFieldValue(true, clonedInstanceInfo, "instanceId", "instance-" + currentTimeMillis());
 
         String actionKey = eurekaServerProperties.getActionKey();

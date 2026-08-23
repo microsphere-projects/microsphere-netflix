@@ -66,7 +66,7 @@ public abstract class EurekaServerTest {
 
     protected PeerAwareInstanceRegistry registry;
 
-    private EurekaRegistration eurekaRegistration;
+    protected EurekaRegistration eurekaRegistration;
 
     private ApplicationInfoManager applicationInfoManager;
 
