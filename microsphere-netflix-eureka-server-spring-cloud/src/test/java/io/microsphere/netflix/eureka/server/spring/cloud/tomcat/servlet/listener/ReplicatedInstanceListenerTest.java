@@ -38,6 +38,8 @@ import static com.netflix.eureka.registry.PeerAwareInstanceRegistryImpl.Action.H
 import static com.netflix.eureka.registry.PeerAwareInstanceRegistryImpl.Action.Register;
 import static io.microsphere.netflix.eureka.server.spring.cloud.tomcat.servlet.listener.EurekaServerListener.getCodecWrapper;
 import static io.microsphere.netflix.eureka.server.spring.cloud.tomcat.servlet.listener.ReplicatedInstanceListener.get;
+import static io.microsphere.reflect.FieldUtils.setFieldValue;
+import static java.lang.System.currentTimeMillis;
 import static java.lang.Thread.sleep;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
@@ -58,9 +60,9 @@ public class ReplicatedInstanceListenerTest extends EurekaServerTest {
         testProcessRegisteredInstances(this.webApplicationContext);
 
         // test process method
+        testProcess(this.webApplicationContext, Register);
         testProcess(this.webApplicationContext, Heartbeat);
         testProcess(this.webApplicationContext, Cancel);
-        testProcess(this.webApplicationContext, Register);
     }
 
     public static void testReplicatedInstanceListener(WebApplicationContext context) throws Throwable {
@@ -101,6 +103,7 @@ public class ReplicatedInstanceListenerTest extends EurekaServerTest {
 
         CodecWrapper codecWrapper = getCodecWrapper(eurekaServerContext);
         InstanceInfo clonedInstanceInfo = new InstanceInfo(instanceInfo);
+        setFieldValue(true, clonedInstanceInfo, "instanceId", "instance-" + currentTimeMillis());
 
         String actionKey = eurekaServerProperties.getActionKey();
         Map<String, String> metadata = clonedInstanceInfo.getMetadata();

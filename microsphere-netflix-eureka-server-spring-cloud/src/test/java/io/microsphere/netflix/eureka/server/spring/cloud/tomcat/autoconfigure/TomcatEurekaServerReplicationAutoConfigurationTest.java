@@ -78,7 +78,6 @@ class TomcatEurekaServerReplicationAutoConfigurationTest {
 
             EurekaServerContext eurekaServerContext = webApplicationContext.getBean(EurekaServerContext.class);
 
-
             testReplicatedInstanceListener(webApplicationContext);
 
             PeerAwareInstanceRegistry registry = eurekaServerContext.getRegistry();
