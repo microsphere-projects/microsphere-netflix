@@ -23,8 +23,9 @@ import com.netflix.discovery.converters.wrappers.CodecWrapper;
 import com.netflix.discovery.shared.Applications;
 import com.netflix.eureka.registry.PeerAwareInstanceRegistry;
 import com.netflix.eureka.registry.PeerAwareInstanceRegistryImpl;
-import io.microsphere.netflix.eureka.server.spring.cloud.EurekaServerProperties;
 import org.junit.jupiter.api.Test;
+import org.springframework.cloud.netflix.eureka.EurekaInstanceConfigBean;
+import org.springframework.cloud.netflix.eureka.InstanceInfoFactory;
 
 import java.io.IOException;
 import java.util.Map;
@@ -34,10 +35,10 @@ import static com.netflix.eureka.registry.PeerAwareInstanceRegistryImpl.Action.H
 import static com.netflix.eureka.registry.PeerAwareInstanceRegistryImpl.Action.Register;
 import static io.microsphere.netflix.eureka.server.spring.cloud.tomcat.servlet.listener.EurekaServerListener.getCodecWrapper;
 import static io.microsphere.netflix.eureka.server.spring.cloud.tomcat.servlet.listener.ReplicatedInstanceListener.get;
-import static io.microsphere.reflect.FieldUtils.setFieldValue;
 import static java.lang.System.currentTimeMillis;
 import static java.lang.Thread.sleep;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.springframework.beans.BeanUtils.copyProperties;
 
 /**
  * {@link ReplicatedInstanceListener} Test
@@ -73,18 +74,23 @@ class ReplicatedInstanceListenerTest extends EurekaServerTest {
     }
 
     void testProcess(ReplicatedInstanceListener listener, PeerAwareInstanceRegistryImpl.Action action) throws IOException {
-        EurekaServerProperties eurekaServerProperties = super.webApplicationContext.getBean(EurekaServerProperties.class);
+        EurekaInstanceConfigBean eurekaInstanceConfigBean = new EurekaInstanceConfigBean(super.inetUtils);
+        copyProperties(super.eurekaInstanceConfigBean, eurekaInstanceConfigBean);
+
+        eurekaInstanceConfigBean.setAppname("test-app");
+        eurekaInstanceConfigBean.setInstanceId("test-instance-" + currentTimeMillis());
+
+        InstanceInfoFactory instanceInfoFactory = new InstanceInfoFactory();
+        InstanceInfo instanceInfo = instanceInfoFactory.create(eurekaInstanceConfigBean);
 
         CodecWrapper codecWrapper = getCodecWrapper(super.eurekaServerContext);
-        InstanceInfo clonedInstanceInfo = new InstanceInfo(super.instanceInfo);
-        setFieldValue(true, clonedInstanceInfo, "instanceId", "instance-" + currentTimeMillis());
 
-        String actionKey = eurekaServerProperties.getActionKey();
-        Map<String, String> metadata = clonedInstanceInfo.getMetadata();
+        String actionKey = super.eurekaServerProperties.getActionKey();
+        Map<String, String> metadata = instanceInfo.getMetadata();
         metadata.put(actionKey, action.name());
 
-        String json = codecWrapper.encode(clonedInstanceInfo);
+        String json = codecWrapper.encode(instanceInfo);
         listener.process(json);
-        listener.process(clonedInstanceInfo, null);
+        listener.process(instanceInfo, null);
     }
 }

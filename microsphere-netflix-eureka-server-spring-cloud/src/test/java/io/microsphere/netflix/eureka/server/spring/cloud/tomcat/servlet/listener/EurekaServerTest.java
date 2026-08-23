@@ -29,6 +29,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.cloud.commons.util.InetUtils;
+import org.springframework.cloud.netflix.eureka.EurekaInstanceConfigBean;
 import org.springframework.cloud.netflix.eureka.server.EnableEurekaServer;
 import org.springframework.cloud.netflix.eureka.server.EurekaServerMarkerConfiguration;
 import org.springframework.cloud.netflix.eureka.serviceregistry.EurekaRegistration;
@@ -62,13 +64,17 @@ public abstract class EurekaServerTest {
 
     protected EurekaServerContext eurekaServerContext;
 
+    protected EurekaInstanceConfigBean eurekaInstanceConfigBean;
+
     protected EurekaServerProperties eurekaServerProperties;
+
+    protected InetUtils inetUtils;
 
     protected PeerAwareInstanceRegistry registry;
 
     protected EurekaRegistration eurekaRegistration;
 
-    private ApplicationInfoManager applicationInfoManager;
+    protected ApplicationInfoManager applicationInfoManager;
 
     protected InstanceInfo instanceInfo;
 
@@ -83,7 +89,9 @@ public abstract class EurekaServerTest {
 
         this.webApplicationContext = (ConfigurableWebApplicationContext) builder.run(getOptions());
         this.eurekaServerContext = this.webApplicationContext.getBean(EurekaServerContext.class);
+        this.eurekaInstanceConfigBean = this.webApplicationContext.getBean(EurekaInstanceConfigBean.class);
         this.eurekaServerProperties = this.webApplicationContext.getBean(EurekaServerProperties.class);
+        this.inetUtils = this.webApplicationContext.getBean(InetUtils.class);
         this.servletContext = this.webApplicationContext.getServletContext();
         this.registry = this.webApplicationContext.getBean(PeerAwareInstanceRegistry.class);
         this.eurekaRegistration = this.webApplicationContext.getBean(EurekaRegistration.class);
