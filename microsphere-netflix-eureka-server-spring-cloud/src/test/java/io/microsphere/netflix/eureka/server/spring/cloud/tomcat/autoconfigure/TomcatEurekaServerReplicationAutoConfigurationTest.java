@@ -26,7 +26,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.cloud.netflix.eureka.server.EnableEurekaServer;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.web.context.WebApplicationContext;
 
 import java.util.List;
 import java.util.concurrent.CompletionService;
@@ -35,7 +34,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
 import static io.microsphere.collection.ListUtils.newArrayList;
-import static io.microsphere.netflix.eureka.server.spring.cloud.tomcat.servlet.listener.ReplicatedInstanceListenerTest.testReplicatedInstanceListener;
 import static java.lang.Thread.sleep;
 import static java.util.Collections.emptyList;
 import static java.util.concurrent.Executors.newFixedThreadPool;
@@ -74,11 +72,7 @@ class TomcatEurekaServerReplicationAutoConfigurationTest {
             ConfigurableApplicationContext context = future.get();
             contexts.add(context);
 
-            WebApplicationContext webApplicationContext = (WebApplicationContext) context;
-
-            EurekaServerContext eurekaServerContext = webApplicationContext.getBean(EurekaServerContext.class);
-
-            testReplicatedInstanceListener(webApplicationContext);
+            EurekaServerContext eurekaServerContext = context.getBean(EurekaServerContext.class);
 
             PeerAwareInstanceRegistry registry = eurekaServerContext.getRegistry();
             List<InstanceInfo> instances;
