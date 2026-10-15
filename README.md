@@ -93,7 +93,23 @@ We welcome your contributions! Please read [Code of Conduct](./CODE_OF_CONDUCT.m
 
 ## Documentation
 
+Documentation hub: [docs/README.md](docs/README.md) (中文：[docs/zh/README.md](docs/zh/README.md))
+
 ### User Guide
+
+| Branch Line | English | 中文 |
+|-------------|---------|------|
+| `release` (current, 0.2.x) | [docs/current/user-guide](docs/current/user-guide/README.md) | [docs/zh/current/user-guide](docs/zh/current/user-guide/README.md) |
+| `release-1.x` (1.x) | [docs/1.x/user-guide](docs/1.x/user-guide/README.md) | [docs/zh/1.x/user-guide](docs/zh/1.x/user-guide/README.md) |
+
+### Developer Guide
+
+| Branch Line | English | 中文 |
+|-------------|---------|------|
+| `release` (current, 0.2.x) | [docs/current/developer-guide](docs/current/developer-guide/README.md) | [docs/zh/current/developer-guide](docs/zh/current/developer-guide/README.md) |
+| `release-1.x` (1.x) | [docs/1.x/developer-guide](docs/1.x/developer-guide/README.md) | [docs/zh/1.x/developer-guide](docs/zh/1.x/developer-guide/README.md) |
+
+### Online Documentation
 
 [DeepWiki Host](https://deepwiki.com/microsphere-projects/microsphere-netflix)
 
